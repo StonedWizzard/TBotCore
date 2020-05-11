@@ -1,0 +1,118 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{59CE9FE3-45C8-48B0-8D2C-8CEEFA1E9081}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>TBotCore</RootNamespace>
+    <AssemblyName>TBotCore</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <LangVersion>8.0</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <LangVersion>8.0</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Telegram.Bot, Version=15.5.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Telegram.Bot.15.5.1\lib\net45\Telegram.Bot.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BotManager.cs" />
+    <Compile Include="Config\BotConfigs.cs" />
+    <Compile Include="Config\ConfigWorker.cs" />
+    <Compile Include="Config\Converter.cs" />
+    <Compile Include="Config\ConfigValue.cs" />
+    <Compile Include="Config\RawData\Button.cs" />
+    <Compile Include="Config\RawData\Dialog.cs" />
+    <Compile Include="Config\RawData\DialogsContainer.cs" />
+    <Compile Include="Config\RawData\ProxyValue.cs" />
+    <Compile Include="Config\TextProcessor.cs" />
+    <Compile Include="Config\RawData\Configs.cs" />
+    <Compile Include="Config\RawData\ConfigValue.cs" />
+    <Compile Include="Config\RawData\ConfigValuesContainer.cs" />
+    <Compile Include="Config\RawData\LangValuesContainer.cs" />
+    <Compile Include="Core\BotAPI.cs" />
+    <Compile Include="Core\ChatCommand.cs" />
+    <Compile Include="Core\ChatCommandsProvider.cs" />
+    <Compile Include="Core\Data\BotExceptionResponse.cs" />
+    <Compile Include="Core\Data\BotResponse.cs" />
+    <Compile Include="Core\Data\DataParser.cs" />
+    <Compile Include="Core\Data\UserContextState.cs" />
+    <Compile Include="Core\Data\UserInputContextController.cs" />
+    <Compile Include="Core\Data\BotRequest.cs" />
+    <Compile Include="Core\Dialogs\IDialogsContainer.cs" />
+    <Compile Include="Core\IRequestValidate.cs" />
+    <Compile Include="Core\OperationsContainer.cs" />
+    <Compile Include="Core\Operations\BaseMessageOperation.cs" />
+    <Compile Include="Core\Operations\BaseOperation.cs" />
+    <Compile Include="Core\Operations\OperationArgs.cs" />
+    <Compile Include="Core\Operations\OperationResult.cs" />
+    <Compile Include="Core\Operations\SendMessage.cs" />
+    <Compile Include="Core\UIDispatcher.cs" />
+    <Compile Include="Db\IUser.cs" />
+    <Compile Include="Db\BaseUserController.cs" />
+    <Compile Include="Db\IUserLogMessage.cs" />
+    <Compile Include="Db\IUserPreferences.cs" />
+    <Compile Include="Db\IUserRole.cs" />
+    <Compile Include="Debug\DebugMessage.cs" />
+    <Compile Include="Debug\IDebuger.cs" />
+    <Compile Include="Debug\IDebugUnit.cs" />
+    <Compile Include="Debug\LogController.cs" />
+    <Compile Include="Debug\TextLogger.cs" />
+    <Compile Include="Core\DialogsProvider.cs" />
+    <Compile Include="Core\Dialogs\Button.cs" />
+    <Compile Include="Core\Dialogs\Dialog.cs" />
+    <Compile Include="Core\Dialogs\DialogContainer.cs" />
+    <Compile Include="Core\Dialogs\IButton.cs" />
+    <Compile Include="Core\Dialogs\IUserResponseAwaiter.cs" />
+    <Compile Include="Core\Dialogs\PaginatedDialog.cs" />
+    <Compile Include="Core\Dialogs\MultiButtonsDialog.cs" />
+    <Compile Include="Core\Dialogs\MultiPageDialog.cs" />
+    <Compile Include="Core\Dialogs\QuizDialog.cs" />
+    <Compile Include="Core\Dialogs\QuizSeriesDialog.cs" />
+    <Compile Include="Core\Dialogs\RootDialog.cs" />
+    <Compile Include="Editor\EditorCore.cs" />
+    <Compile Include="Editor\IEditeble.cs" />
+    <Compile Include="Editor\IEditor.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Debug\QA\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
