@@ -33,6 +33,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -46,10 +47,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddValueForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AddValueForm.Designer.cs">
+      <DependentUpon>AddValueForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="BaseTabController.cs" />
     <Compile Include="CustomSettingsTabController.cs" />
+    <Compile Include="DialogsTabController.cs" />
     <Compile Include="EditorController.cs" />
     <Compile Include="GeneralConfigsTabController.cs" />
+    <Compile Include="LanguageTabController.cs" />
     <Compile Include="MainEditorForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -58,6 +67,10 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SupportButtonsTabController.cs" />
+    <EmbeddedResource Include="AddValueForm.resx">
+      <DependentUpon>AddValueForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainEditorForm.resx">
       <DependentUpon>MainEditorForm.cs</DependentUpon>
     </EmbeddedResource>

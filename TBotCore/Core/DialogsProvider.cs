@@ -9,13 +9,14 @@ using TBotCore.Core.Dialogs;
 using TBotCore.Debug;
 using TBotCore.Core.Data;
 using TBotCore.Db;
+using TBotCore.Editor;
 
 namespace TBotCore.Core
 {
     /// <summary>
-    /// Contains and controlls dialogs
+    /// Contains and controlls dialogs in bot
     /// </summary>
-    sealed class DialogsProvider : IDebugUnit
+    public sealed class DialogsProvider : IEditable<DialogsProvider.EditableDialogsProvider>
     {
         /// <summary>
         /// Dictionary contains references to dialogs in list. Simplified access to them by id.
@@ -29,56 +30,22 @@ namespace TBotCore.Core
         /// </summary>
         private Dictionary<string, Button> SupportButtons;
 
-        private RootDialog _RootDialog;
         /// <summary>
         /// Shortcut ref to root dialog
         /// </summary>
-        public RootDialog RootDialog { get => _RootDialog; }
+        public RootDialog RootDialog { get; }
 
-        private QuizSeriesDialog _RegistrationDialog;
         /// <summary>
         /// Shortcut reference for registration dialog
         /// </summary>
-        public QuizSeriesDialog RegistrationDialog { get => _RegistrationDialog; }
+        public RegistrationDialog RegistrationDialog { get; }
 
-        private readonly IDebuger _Debuger;
-        public IDebuger Debuger => _Debuger;
 
-        public DialogsProvider(IDebuger debuger, TBotCore.Config.RawData.DialogsContainer root)
+        public DialogsProvider(Config.RawData.DialogsContainer root)
         {
-            _Debuger = debuger;
-
             Dialogs = new List<Dialog>();
             DialogsTable = new Dictionary<string, Dialogs.Dialog>();
 
-            // create root dialog
-            try
-            {
-                _RootDialog = new RootDialog(root as Config.RawData.Dialog);
-                DialogsTable.Add(_RootDialog.Id, _RootDialog);
-                Dialogs.Add(_RootDialog);
-            }
-            catch(Exception e)
-            {
-                Debuger?.LogCritical(new DebugMessage($"Couldn't initialize root dialog!", "DialogsProvider()", e));
-            }
-
-            // fill other dialogs
-            List<Dialog> dialogs = DialogInitializer(root, RootDialog);
-            _RootDialog.SetSubDialogs(dialogs.Where(x => x.Id == _RootDialog.Id).ToList());
-            foreach(var dia in dialogs)
-            {
-                if (DialogsTable.ContainsKey(dia.Id))
-                {
-                    Debuger?.LogError(new DebugMessage($"Dialog with Id = '{dia.Id}' already exist!\r\n" +
-                        $"Try give it another name or delete duplicates.", "DialogInitializer()", "Dialog was skipped!"));
-                    continue;
-                }
-
-                DialogsTable.Add(dia.Id, dia);
-                Dialogs.Add(dia);
-            }
-            
             // fill support buttons
             SupportButtons = new Dictionary<string, Button>();
             foreach (var btn in root.SupportButtons)
@@ -89,11 +56,35 @@ namespace TBotCore.Core
                     Button button = Activator.CreateInstance(type, btn) as Button;
                     SupportButtons.Add(btn.Id, button);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
-                    Debuger?.LogWarning(new DebugMessage($"Couldn't convert support button '{btn.Id}'", "DialogsProvider()", e));
+                    BotManager.Core?.LogController?.LogWarning(new DebugMessage($"Couldn't convert support button '{btn.Id}'", "DialogsProvider()", e));
                 }
             }
+
+            // create root dialog
+            try
+            {
+                RootDialog = new RootDialog(root as Config.RawData.Dialog);
+                RootDialog.GetEditable().SupportButtons = GetButtons(root.Buttons);
+
+                RegistrationDialog = new RegistrationDialog(root.RegistrationDialog, null);
+                RegistrationDialog.GetEditable().SupportButtons = GetButtons(root.RegistrationDialog.Buttons);
+
+                DialogsTable.Add(RootDialog.Id, RootDialog);
+                Dialogs.Add(RootDialog);
+                DialogsTable.Add(RegistrationDialog.Id, RegistrationDialog);
+                Dialogs.Add(RegistrationDialog);
+            }
+            catch (Exception e)
+            {
+                BotManager.Core?.LogController?.LogCritical(new DebugMessage($"Couldn't initialize root dialog!", "DialogsProvider()", e));
+                throw e;
+            }
+
+            // fill other dialogs and bind supportButtons
+            RootDialog.GetEditable().Dialogs = DialogInitializer(root, RootDialog);
+            RegistrationDialog.GetEditable().Dialogs = DialogInitializer(root.RegistrationDialog, RegistrationDialog);
         }
 
         /// <summary>
@@ -105,26 +96,39 @@ namespace TBotCore.Core
                 return new List<Dialog>();
 
             List<Dialog> result = new List<Dialog>();
-            foreach(var dia in entryPoint.Dialogs)
+            foreach (var dia in entryPoint.Dialogs)
             {
                 try
                 {
                     var type = Type.GetType(dia.Type);
                     Dialog dialog = Activator.CreateInstance(type, dia, owner) as Dialog;
-                    result.Add(dialog);
 
-                    // check if dialog can keep other dialogs
-                    if(dialog is IDialogsContainer)
+                    // check table
+                    if (DialogsTable.ContainsKey(dia.Id))
                     {
-                        List<Dialog> range = DialogInitializer(dia, dialog);
-                        (dialog as DialogContainer).
-                            SetSubDialogs(range.Where(x=> x.Owner.Id == dialog.Id).ToList());
-                        result.AddRange(range);
+                        BotManager.Core?.LogController?.LogError(new DebugMessage($"Dialog with Id = '{dia.Id}' already exist!\r\n" +
+                            $"Try give it another name or delete duplicates.", "DialogInitializer()", "Dialog was skipped!"));
+                        continue;
                     }
+
+                    // set buttons
+                    foreach(var btn in dia.Buttons)
+                        dialog.GetEditable().SupportButtons.Add(GetButton(btn));
+
+                    // serch more dialogs
+                    if (dia.Dialogs.Count > 0)
+                    {
+                        dialog.GetEditable().Dialogs = DialogInitializer(dia, dialog);
+                    }
+
+                    // add results
+                    result.Add(dialog);
+                    DialogsTable.Add(dialog.Id, dialog);
+                    Dialogs.Add(dialog);
                 }
                 catch (Exception e)
                 {
-                    Debuger?.LogError(new DebugMessage($"Couldn't convert dialog '{dia.Id}'", "DialogInitializer()", e));
+                    BotManager.Core?.LogController?.LogError(new DebugMessage($"Couldn't convert dialog '{dia.Id}'", "DialogInitializer()", e));
                 }
             }
 
@@ -137,11 +141,11 @@ namespace TBotCore.Core
         public BotResponse GetDialog(string dialogId, IUser user)
         {
             Dialog dialog = GetDialog(dialogId);
-            if(dialog == null)
+            if (dialog == null)
             {
                 // dialog has missed by some reason...
                 // send user to root and make log
-                Debuger.LogError(new DebugMessage($"Couldn't find dialog '{dialogId}'", "GetDialog()"));
+                BotManager.Core?.LogController?.LogError(new DebugMessage($"Couldn't find dialog '{dialogId}'", "GetDialog()"));
                 return new BotResponse(RootDialog.Id, BotResponse.ResponseType.Dialog, user);
             }
 
@@ -154,7 +158,6 @@ namespace TBotCore.Core
 
         /// <summary>
         /// Returns dialog by it's id.
-        /// Use only in editor to prevent user access bugs
         /// </summary>
         public Dialog GetDialog(string dialogId)
         {
@@ -162,6 +165,190 @@ namespace TBotCore.Core
                 return DialogsTable[dialogId];
 
             return null;
+        }
+
+        /// <summary>
+        /// Return support button by it's id
+        /// </summary>
+        public Button GetButton(string buttonId)
+        {
+            if (SupportButtons.ContainsKey(buttonId))
+                return SupportButtons[buttonId];
+
+            return null;
+        }
+
+        /// <summary>
+        /// Return list of all support buttons in bot
+        /// </summary>
+        public List<Button> GetButtons()
+        {
+            return SupportButtons.Values.ToList();
+        }
+
+        /// <summary>
+        /// Return list of all support buttons in list
+        /// </summary>
+        public List<Button> GetButtons(List<string> btns)
+        {
+            var keys = SupportButtons.Keys.Intersect(btns);
+            List<Button> result = new List<Button>();
+            foreach (var btnKey in keys)
+            {
+                if (SupportButtons.ContainsKey(btnKey))
+                    result.Add(SupportButtons[btnKey]);
+                else
+                    BotManager.Core?.LogController?
+                        .LogWarning(new DebugMessage("Requested support button '{btnKey}' not found in dictionary!"));
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Return count of dialogs to make unique new_dialog Id
+        /// </summary>
+        public int GetNumSuffix()
+        {
+            return Dialogs.Count;
+        }
+
+
+
+        public EditableDialogsProvider GetEditable()
+        {
+            return new EditableDialogsProvider(this);
+        }
+
+        public class EditableDialogsProvider : IEntityEditor<DialogsProvider>
+        {
+            private readonly Type rootType = typeof(RootDialog);
+            private readonly Type regType = typeof(RegistrationDialog);
+
+            public DialogsProvider EditableObject { get; private set; }
+
+            public EditableDialogsProvider(DialogsProvider owner) { EditableObject = owner; }
+
+
+            public bool InsertDialog(Dialog dia, string parentId = "Root")
+            {
+                if(!EditableObject.DialogsTable.ContainsKey(dia.Id))
+                {
+                    Dialog parent = EditableObject.GetDialog(parentId);
+                    // prevent serial dialogs have childs
+                    if (parent.Owner is SerialDialog)
+                        return false;
+
+                    // prevent serial dialogs have dialogs other than simple dialog
+                    if (parent is SerialDialog && !(dia is Dialog))
+                        return false;
+
+                    parent.GetEditable().Dialogs.Add(dia);
+                    dia.GetEditable().Owner = parent;
+
+                    EditableObject.DialogsTable.Add(dia.Id, dia);
+                    EditableObject.Dialogs.Add(dia);
+                    return true;
+                }
+                return false;
+            }
+
+            public bool RemoveDialog(string id)
+            {
+                if (EditableObject.DialogsTable.ContainsKey(id))
+                {
+                    // get dialog to remove and his master ;)
+                    Dialog removedDia = EditableObject.DialogsTable[id];
+                    //prevent removing reg and root dialogs
+                    if (removedDia is RootDialog || removedDia is RegistrationDialog)
+                        return false;
+
+                    Dialog parent = removedDia.Owner;
+
+                    // remove from parent list
+                    parent.GetEditable().Dialogs.Remove(removedDia);
+                    
+                    // clear dialog provider list
+                    EditableObject.DialogsTable.Remove(removedDia.Id);
+                    EditableObject.Dialogs.Remove(removedDia);
+
+                    return true;
+                }
+                return false;
+            }
+
+            /// <summary>
+            /// Convert dialog type
+            /// </summary>
+            public (bool, Dialog) CastDialog(string id, Type type)
+            {
+                (bool, Dialog) result = (false, null);
+                if (EditableObject.DialogsTable.ContainsKey(id))
+                {
+                    Dialog dia = EditableObject.DialogsTable[id];
+                    if (dia == null) return result;
+
+                    result = (false, dia);
+
+                    // check types - conversion to root and registration imposible
+                    if (type == rootType || type == regType)
+                        return result;
+
+                    // cast dialog and keep new reference
+                    dia = dia.GetEditable().CastDialog(type);
+                    result = (true, dia);
+
+                    Dialog parent = dia.Owner;
+                    if(parent != null)
+                    {
+                        var edPar = parent.GetEditable();
+                        edPar.Dialogs.RemoveAll(x => x.Id == id);
+                        edPar.Dialogs.Add(dia);
+                    }
+
+                    EditableObject.DialogsTable.Remove(id);
+                    EditableObject.Dialogs.RemoveAll(x => x.Id == id);
+
+                    EditableObject.DialogsTable.Add(id, dia);
+                    EditableObject.Dialogs.Add(dia);
+                    
+                }
+                return result;
+            }
+
+            /// <summary>
+            /// Insert new button
+            /// </summary>
+            public bool InsertButton()
+            {
+                string newBtnId = $"new_button{EditableObject.SupportButtons.Count}";
+
+                var btn = new TBotCore.Config.RawData.Button()
+                {
+                    Id = newBtnId,
+                    Name = newBtnId,
+                    DisplayPriority = 0,
+                    Data = @"{ ContentType: """", Content: """", Data: {}}",
+                    Type = typeof(Button).ToString()
+                };
+
+                return InsertButton(new Button(btn));
+            }
+            public bool InsertButton(Button button)
+            {
+                if (button == null) return false;
+                if (EditableObject.SupportButtons.ContainsKey(button.Id)) return false;
+
+                EditableObject.SupportButtons.Add(button.Id, button);
+                return true;
+            }
+
+            public bool RemoveButton(string id)
+            {
+                if (EditableObject.SupportButtons.ContainsKey(id)) return false;
+
+                EditableObject.SupportButtons.Remove(id);
+                return true;
+            }
         }
     }
 }

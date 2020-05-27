@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using CD = TBotCore.Core.Dialogs;
 
 namespace TBotCore.Config.RawData
@@ -12,7 +9,7 @@ namespace TBotCore.Config.RawData
     /// Serializeble dialog
     /// </summary>
     [Serializable]
-    class Dialog : Button
+    public class Dialog : Button
     {
         /// <summary>
         /// Dialog message
@@ -25,12 +22,16 @@ namespace TBotCore.Config.RawData
 
         /// <summary>
         /// List of stored dialogs
-        /// Attention - deserialized type should implement IDialogsContainer
         /// </summary>
         public List<Dialog> Dialogs;
+        /// <summary>
+        /// List of supportive buttons. stored only Id
+        /// </summary>
+        public List<string> Buttons;
 
         public Dialog() : base()
         {
+            Buttons = new List<string>();
             Dialogs = new List<Dialog>();
             Message = new List<string>();
             Operation = null;
@@ -40,9 +41,13 @@ namespace TBotCore.Config.RawData
         {
             Dialogs = new List<Dialog>();
             Message = 
-                dialog is CD.MultiPageDialog ? (dialog as CD.MultiPageDialog).Content : new List<string>() { dialog.Content };
+                dialog is CD.PaginatedDialog ? (dialog as CD.PaginatedDialog).Content.ToList() : new List<string>() { dialog.Content };
 
-            Operation = dialog.Operation != null ? dialog.Operation.ToString() : null;
+            Buttons = new List<string>();
+            foreach (var btn in dialog.SupportButtons)
+                Buttons.Add(btn.Id);
+
+            Operation = dialog.Operation?.ToString();
         }
     }
 }

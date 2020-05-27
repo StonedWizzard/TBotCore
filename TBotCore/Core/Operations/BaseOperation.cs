@@ -13,16 +13,12 @@ namespace TBotCore.Core.Operations
     /// <summary>
     /// Base telegram bot dialog/button operation
     /// </summary>
-    abstract class BaseOperation : IRequestValidate
+    public abstract class BaseOperation : IRequestValidate
     {
-        /// <summary>
-        /// Name (or Id, if you like) of operation
-        /// </summary>
-        public static string Name { get; protected set; }
         /// <summary>
         /// Container witch owns this instance
         /// </summary>
-        public readonly OperationsContainer Owner;
+        public OperationsContainer Owner { get; protected set; }
         /// <summary>
         /// List of required arguments for operation
         /// </summary>
@@ -34,9 +30,8 @@ namespace TBotCore.Core.Operations
 
         public BaseOperation(OperationsContainer owner) 
         {
-            Name = "null";
             Owner = owner;
-            TelegramApi = owner.TelegramApi;
+            TelegramApi = owner?.TelegramApi;
             RequiredArgsName = new List<string>();
         }
 
@@ -62,11 +57,6 @@ namespace TBotCore.Core.Operations
         public virtual bool ValidateUser(IUserRole role)
         {
             return true;
-        }
-
-        public override string ToString()
-        {
-            return Name;
         }
     }
 }

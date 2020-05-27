@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Rd = TBotCore.Config.RawData;
 using TBotCore.Core.Data;
 using TBotCore.Db;
+using TBotCore.Editor;
 
 namespace TBotCore.Core.Dialogs
 {
@@ -13,7 +14,7 @@ namespace TBotCore.Core.Dialogs
     /// Class represent service telegram buttons like back, forward, to main...
     /// That kind of buttons can't lost by telegrams button request limits.
     /// </summary>
-    class Button : IButton
+    public class Button : IButton, IEditable<Button.EditableButton>
     {
         public string Id { get; protected set; }
         public string DisplayedName { get; protected set; }
@@ -41,12 +42,50 @@ namespace TBotCore.Core.Dialogs
             return true;
         }
 
+
         public Button(Rd.Button button)
         {
             Id = button.Id;
             DisplayedName = button.Name;
             Data = button.Data;
             DisplayPriority = button.DisplayPriority;
+        }
+
+        public override string ToString() => Id;
+
+
+        public EditableButton GetEditable()
+        {
+            return new EditableButton(this);
+        }
+
+        public class EditableButton : IEntityEditor<Button>
+        {
+            public Button EditableObject { get; private set; }
+
+            public EditableButton(Button owner) { EditableObject = owner; }
+
+
+            public string Id
+            {
+                get => EditableObject.Id;
+                set => EditableObject.Id = value;
+            }
+            public string DisplayedName
+            {
+                get => EditableObject.DisplayedName;
+                set => EditableObject.DisplayedName = value;
+            }
+            public string Data
+            {
+                get => EditableObject.Data;
+                set => EditableObject.Data = value;
+            }
+            public int DisplayPriority
+            {
+                get => EditableObject.DisplayPriority;
+                set => EditableObject.DisplayPriority = value;
+            }
         }
     }
 }

@@ -10,7 +10,7 @@ namespace TBotCore.Core
     /// <summary>
     /// Represent single chat command
     /// </summary>
-    class ChatCommand : IRequestValidate
+    public class ChatCommand : IRequestValidate
     {
         public virtual bool ValidateUser(IUserRole role)
         {

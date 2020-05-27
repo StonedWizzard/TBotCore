@@ -10,7 +10,7 @@ namespace TBotCore.Core.Data
     /// <summary>
     /// User input, button click or other request from user.
     /// </summary>
-    struct BotRequest
+    public struct BotRequest
     {
         private static readonly char[] DataSeparator = new char[] { ':' };
 

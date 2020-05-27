@@ -12,9 +12,6 @@ namespace TBotCore.Config
     /// </summary>
     public class ConfigValue : IEditable<ConfigValue.EditebleConfigValue>
     {
-        public delegate void ConfigValueChanged(object sender, string e);
-        public event ConfigValueChanged ValueChangedEvent;
-
         string _key;
         /// <summary>
         /// Parameters key.
@@ -24,57 +21,30 @@ namespace TBotCore.Config
         public string Key
         {
             get { return _key; }
-            set
+            protected set
             {
                 if (String.IsNullOrEmpty(value))
                     throw new ArgumentNullException("ConfigValue.Key", "ConfigValue key can't be empty or null!");
 
                 _key = value;
-                OnConfigValueChanged("Key");
             }
         }
 
-        object _value;
         /// <summary>
         /// Parameter value
         /// </summary>
-        public object Value
-        {
-            get { return _value; }
-            set
-            {
-                _value = value;
-                OnConfigValueChanged("Value");
-            }
-        }
+        public object Value { get; protected set; }
 
-        string _description;
         /// <summary>
         /// Displayed description of property.
         /// </summary>        
-        public string Description
-        {
-            get { return _description; }
-            set
-            {
-                _description = value;
-                OnConfigValueChanged("Description");
-            }
-        }
+        public string Description { get; protected set; }
 
-        string _name;
+
         /// <summary>
         /// Displayed property name.
         /// </summary>
-        public string Name
-        {
-            get { return _name; }
-            set
-            {
-                _name = value;
-                OnConfigValueChanged("Name");
-            }
-        }
+        public string Name { get; protected set; }
 
         Type _valueType;
         /// <summary>
@@ -84,21 +54,24 @@ namespace TBotCore.Config
         public Type ValueType
         {
             get { return _valueType; }
-            set
+            protected set
             {
                 _valueType = value;
-                _value = Convert.ChangeType(Value, _valueType);
-                OnConfigValueChanged("ValueType");
+                Value = Convert.ChangeType(Value, _valueType);
             }
         }
 
-        public RawData.ConfigValue.ValueFlags ValueFlags { get; private set; }
+        public RawData.ConfigValue.ValueFlags ValueFlags { get; protected set; }
 
         public ConfigValue(string key, Type t)
         {
             Key = key;
             ValueType = t;
             Value = null;
+        }
+        public ConfigValue(string key, string name, Type t) : this(key, t)
+        {
+            Name = name;
         }
 
         public ConfigValue(RawData.ConfigValue raw)
@@ -112,12 +85,6 @@ namespace TBotCore.Config
 
             Name = raw.Name;
             Description = raw.Description;
-        }
-
-
-        public virtual void OnConfigValueChanged(string valueName)
-        {
-            ValueChangedEvent?.Invoke(this, valueName);
         }
 
         public override int GetHashCode()
@@ -156,40 +123,40 @@ namespace TBotCore.Config
 
         public class EditebleConfigValue : IEntityEditor<ConfigValue>
         {
-            public ConfigValue Owner { get; private set; }
+            public ConfigValue EditableObject { get; private set; }
 
-            public EditebleConfigValue(ConfigValue owner) { Owner = owner; }
+            public EditebleConfigValue(ConfigValue owner) { EditableObject = owner; }
 
             // editable properties
             public string Key
             {
-                get => Owner.Key;
-                set => Owner.Key = value;
+                get => EditableObject.Key;
+                set => EditableObject.Key = value;
             }
             public object Value
             {
-                get => Owner.Value;
-                set => Owner.Value = value;
+                get => EditableObject.Value;
+                set => EditableObject.Value = value;
             }
             public string Description
             {
-                get => Owner.Description;
-                set => Owner.Description = value;
+                get => EditableObject.Description;
+                set => EditableObject.Description = value;
             }
             public string Name
             {
-                get => Owner.Name;
-                set => Owner.Name = value;
+                get => EditableObject.Name;
+                set => EditableObject.Name = value;
             }
             public Type ValueType
             {
-                get => Owner.ValueType;
-                set => Owner.ValueType = value;
+                get => EditableObject.ValueType;
+                set => EditableObject.ValueType = value;
             }
             public RawData.ConfigValue.ValueFlags ValueFlags 
             {
-                get => Owner.ValueFlags;
-                set => Owner.ValueFlags = value;
+                get => EditableObject.ValueFlags;
+                set => EditableObject.ValueFlags = value;
             }
 
 

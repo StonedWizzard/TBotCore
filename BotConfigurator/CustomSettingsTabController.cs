@@ -48,7 +48,7 @@ namespace BotConfigurator
                 SelectedValue.Key = Owner.Form.CustomValueKeyBox.Text;
                 SelectedValue.Description = Owner.Form.CustomValueDescriptionBox.Text;
                 SelectedValue.Name = Owner.Form.CustomValueDisplayNameBox.Text;
-                SelectedValue.Value = Owner.Form.CustomValueBox.Text;   // can be error - type mismatch, maybe
+                SelectedValue.Value = Owner.Form.CustomValueBox.Text;
                 SelectedValue.ValueType = Type.GetType(Owner.Form.CustomValueTypeBox.Text);
             }
         }
@@ -66,13 +66,13 @@ namespace BotConfigurator
             // pickup new selection
             SelectedValue = Owner.Form.CustomValuesList.SelectedItems[0].Tag as ConfigValue.EditebleConfigValue;
 
-            Owner.Form.CustomValueBox.Text = SelectedValue.Value.ToString();
+            Owner.Form.CustomValueBox.Text = SelectedValue.Value?.ToString();
             Owner.Form.CustomValueKeyBox.Text = SelectedValue.Key.ToString();
             Owner.Form.CustomValueTypeBox.Text = SelectedValue.ValueType.ToString();
             // handle flags by other way!!!!!!!!!
             //Owner.Form.CustomValueFlagsBox.Text = SelectedValue.Value.ToString();
-            Owner.Form.CustomValueDisplayNameBox.Text = SelectedValue.Name.ToString();
-            Owner.Form.CustomValueDescriptionBox.Text = SelectedValue.Description.ToString();
+            Owner.Form.CustomValueDisplayNameBox.Text = SelectedValue.Name;
+            Owner.Form.CustomValueDescriptionBox.Text = SelectedValue.Description;
 
             ShowUi(true);
         }
@@ -85,6 +85,9 @@ namespace BotConfigurator
 
         public override void OnTabOpen()
         {
+            ConfigValues = Owner.Core.Configs.GetEditableValues();
+            SelectedValue = null;
+
             Owner.Form.CustomValuesList.Clear();
             foreach (var v in ConfigValues)
             {
@@ -110,6 +113,32 @@ namespace BotConfigurator
             Owner.Form.label6.Visible = show;
             Owner.Form.label9.Visible = show;
             Owner.Form.label8.Visible = show;
+        }
+
+        public void AddNewValue()
+        {
+            var e = Owner.Core.Configs.GetEditable();
+            var form = new AddValueForm("Add new Custom Property", x => !e.IsValueExist(x));
+            if (form.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                e.AddValue(form.ResultValue);
+                OnTabOpen();
+            }
+        }
+
+        public void RemoveValue()
+        {
+            if(SelectedValue != null)
+            {
+                var e = Owner.Core.Configs.GetEditable();
+                var confirm = MessageBox.Show($"Are you want delete property:\r\n'{SelectedValue.Name}'[key:{SelectedValue.Key}]", "Warning",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (confirm == DialogResult.Yes)
+                {
+                    e.RemoveValue(SelectedValue.Key);
+                    OnTabOpen();
+                }
+            }
         }
     }
 }

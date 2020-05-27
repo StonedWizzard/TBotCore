@@ -17,31 +17,30 @@ namespace TBotCore.Core
     /// by they string Id. Container provides binding operators and dialog execution delegates
     /// during dialogs initioalization on bot start
     /// </summary>
-    class OperationsContainer : IDebugUnit
+    public class OperationsContainer
     {
         /// <summary>
         /// Refernce to telegram api 
         /// </summary>
-        public TelegramBotClient TelegramApi { get; protected set; }
-
-        protected readonly IDebuger _Debuger;
-        public IDebuger Debuger => _Debuger;
+        public TelegramBotClient TelegramApi => BotManager.Core?.BotApiManager?.Api;
 
         protected Dictionary<string, BaseOperation> Operations;
 
         /// <summary>
         /// Create default operation container with default operations
         /// </summary>
-        public OperationsContainer(IDebuger debuger)
+        public OperationsContainer()
         {
-            _Debuger = debuger;
             Operations = new Dictionary<string, BaseOperation>();
 
             // add default operations
-            Operations.Add(SendMessage.Name, new SendMessage(this));
+            InitializeOperations();
         }
 
-        public void SetApi(TelegramBotClient api) { TelegramApi = api; }
+        public virtual void InitializeOperations()
+        {
+            Operations.Add(nameof(SendMessage), new SendMessage(this));
+        }
 
         public BaseOperation this[string indx]
         {
@@ -54,13 +53,21 @@ namespace TBotCore.Core
         /// <summary>
         /// Return reference to operation by id.
         /// When operation missed or id is incorrect - return null and generate logMessage
+        /// If useFiller = true than return operation filler to make serialization compability
         /// </summary>
-        public BaseOperation GetOperation(string opId)
+        public BaseOperation GetOperation(string opId, bool useFiller = false)
         {
+            if (String.IsNullOrEmpty(opId)) return null;
+
             if (Operations.ContainsKey(opId))
                 return Operations[opId];
 
-            Debuger?.LogError(new DebugMessage($"Operation '{opId}' didn't registered in operations container!", "GetOperation()"));
+            // create virtual operation
+            else if (useFiller)
+                return new OperationFiller(opId);
+
+            BotManager.Core?.LogController?
+                .LogError(new DebugMessage($"Operation '{opId}' didn't registered in operations container!", "GetOperation()"));
             return null;
         }
     }

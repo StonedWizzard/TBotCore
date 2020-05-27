@@ -12,9 +12,19 @@ namespace TBotCore.Config.RawData
     [Serializable]
     public class ProxyValue
     {
-        public string Adress;
+        public string Ip;
         public int Port;
         public string Login;
         public string Password;
+
+        public ProxyValue() { /*support serialization*/ }
+
+        public ProxyValue(Proxy proxy)
+        {
+            Ip = proxy.Ip;
+            Port = proxy.Port;
+            Login = proxy.Login;
+            Password = proxy.Password;
+        }
     }
 }

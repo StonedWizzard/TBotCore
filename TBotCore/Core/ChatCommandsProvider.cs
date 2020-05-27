@@ -11,7 +11,7 @@ namespace TBotCore.Core
     /// Contains and provide execution of manual chat commands.
     /// Also stores some support methods
     /// </summary>
-    class ChatCommandsProvider
+    public class ChatCommandsProvider
     {
         /// <summary>
         /// Returns true and command in case if string correct, 

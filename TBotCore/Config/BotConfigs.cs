@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,11 +13,8 @@ namespace TBotCore.Config
     /// <summary>
     /// Bot settings container.
     /// </summary>
-    public class BotConfigs : IEnumerable, IDebugUnit, IEditable<BotConfigs.EditebleBotConfigs>
+    public class BotConfigs : IEnumerable, IEditable<BotConfigs.EditebleBotConfigs>
     {
-        protected readonly IDebuger _Debuger;
-        public IDebuger Debuger => _Debuger;
-
         //General configs
         public string BotName { get; protected set; }
         public string BotHash { get; protected set; }
@@ -28,6 +26,13 @@ namespace TBotCore.Config
         /// </summary>
         public TextProcessor TextStrings { get; protected set; }
 
+        List<Proxy> _Proxies;
+        public IEnumerable<Proxy> Proxies 
+        {
+            get => _Proxies.ToImmutableList();
+            protected set => _Proxies = value.ToList();
+        }
+
         protected Dictionary<string, ConfigValue> Values;
         public ConfigValue this[string index]
         {
@@ -37,33 +42,45 @@ namespace TBotCore.Config
                     return Values[index];
                 else
                 {
-                    Debuger?.LogError(new Debug.DebugMessage($"Value with key '{index}' not found in configs!", "BotConfigs.Indexer"));
+                    BotManager.Core?.LogController?.LogError(new Debug.DebugMessage($"Value with key '{index}' not found in configs!", "BotConfigs.Indexer"));
                     return null;
                 }
             }
         }
 
-        public BotConfigs(IDebuger debuger)
+
+        public BotConfigs()
         {
-            _Debuger = debuger;
             Values = new Dictionary<string, ConfigValue>();
-            TextStrings = new TextProcessor(Debuger);
+            TextStrings = new TextProcessor();
+            Proxies = new List<Proxy>();
         }
-        public BotConfigs(IDebuger debuger, RawData.Configs config) : this(debuger)
+        public BotConfigs(RawData.Configs config) : this()
         {
             if (config == null)
-                throw new ArgumentNullException();
+                throw new ArgumentNullException("config");
 
+            // initialize basic variables
             BotName = config.BotName;
             BotHash = config.BotHash;
             BasicDelay = config.BasicDelay;
 
-            foreach(RawData.ConfigValue val in config.CustomValues)
+            // fill custom variables
+            foreach(RawData.ConfigValue val in config.CustomValues.Array)
             {
                 if (!Values.ContainsKey(val.Key))
                     Values.Add(val.Key, new ConfigValue(val));
+                else
+                    BotManager.Core?.LogController?
+                        .LogWarning(new DebugMessage($"Custom value with key '{val.Key}' already exist!\r\nEntity was skiped.", "BotConfigs()", ""));
             }
-            TextStrings = new TextProcessor(Debuger, config.LanguageValues);
+
+            // text processor initialize by itself
+            TextStrings = new TextProcessor(config.LanguageValues);
+
+            // fill proxy values
+            foreach(var prox in config.ProxyServers)
+                _Proxies.Add(new Proxy(prox));
         }
 
         /// <summary>
@@ -76,6 +93,11 @@ namespace TBotCore.Config
                 result.Add(val.Value);
 
             return result;
+        }
+
+        public bool IsValueExist(string key)
+        {
+            return Values.ContainsKey(key);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -105,30 +127,70 @@ namespace TBotCore.Config
 
         public class EditebleBotConfigs : IEntityEditor<BotConfigs>
         {
-            public BotConfigs Owner { get; private set; }
+            public BotConfigs EditableObject { get; private set; }
 
-            public EditebleBotConfigs(BotConfigs owner) { Owner = owner; }
+            public EditebleBotConfigs(BotConfigs owner) { EditableObject = owner; }
+
 
             // editable properties
             public string BotName
             {
-                get => Owner.BotName;
-                set => Owner.BotName = value;
+                get => EditableObject.BotName;
+                set => EditableObject.BotName = value;
             }
             public string BotHash
             {
-                get => Owner.BotHash;
-                set => Owner.BotHash = value;
+                get => EditableObject.BotHash;
+                set => EditableObject.BotHash = value;
             }
             public int BasicDelay
             {
-                get => Owner.BasicDelay;
-                set => Owner.BasicDelay = value;
+                get => EditableObject.BasicDelay;
+                set => EditableObject.BasicDelay = value;
             }
             public bool UseProxy
             {
-                get => Owner.UseProxy;
-                set => Owner.UseProxy = value;
+                get => EditableObject.UseProxy;
+                set => EditableObject.UseProxy = value;
+            }
+
+
+            public bool IsValueExist(string key) => EditableObject.IsValueExist(key);
+
+            public bool AddValue(string key)
+            {
+                if(!IsValueExist(key))
+                {
+                    EditableObject.Values.Add(key, new ConfigValue(key, "new_value", typeof(string)));
+                    return true;
+                }
+
+                return false;
+            }
+
+            public bool RemoveValue(string key)
+            {
+                if(IsValueExist(key))
+                {
+                    EditableObject.Values.Remove(key);
+                }
+                return true;
+            }
+
+
+            public void AddProxy(Proxy proxy)
+            {
+                EditableObject._Proxies.Add(proxy);
+            }
+
+            public void ClearProxies()
+            {
+                EditableObject._Proxies.Clear();
+            }
+
+            public bool RemoveProxy(Proxy proxy)
+            {
+                return EditableObject._Proxies.Remove(proxy);
             }
         }
         #endregion

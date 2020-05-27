@@ -12,17 +12,19 @@ namespace TBotCore.Config.RawData
     /// Represents serializeble values container
     /// </summary>
     [Serializable]
-    [XmlInclude(typeof(ConfigValue))]
-    public class ConfigValuesContainer : IEnumerable
+    public class ConfigValuesContainer
     {
-        public ConfigValuesContainer() { Array = new List<ConfigValue>(); }
+        public ConfigValuesContainer() 
+        {
+            Array = new List<ConfigValue>(); 
+            Section = "null";
+        }
         public ConfigValuesContainer(string section) : this()
         {
             Section = section;
         }
         public ConfigValuesContainer(IList<TBotCore.Config.ConfigValue> values, string section) : this(section)
         {
-            Section = section;
             foreach(var val in values)
             {
                 ConfigValue cval = new ConfigValue(val);
@@ -33,15 +35,6 @@ namespace TBotCore.Config.RawData
         public string Section;
         public List<ConfigValue> Array;
 
-        /// <summary>
-        /// Support serialization
-        /// </summary>
         public void Add(ConfigValue value) { Array.Add(value); }
-        public void Add(object value) { }
-
-        public IEnumerator GetEnumerator()
-        {
-            return Array.GetEnumerator();
-        }
     }
 }

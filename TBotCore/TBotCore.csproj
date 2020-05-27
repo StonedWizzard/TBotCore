@@ -33,11 +33,27 @@
     <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Collections.Immutable, Version=1.2.5.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Collections.Immutable.1.7.1\lib\net461\System.Collections.Immutable.dll</HintPath>
+    </Reference>
     <Reference Include="System.Core" />
+    <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.4\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.3\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -51,9 +67,10 @@
   <ItemGroup>
     <Compile Include="BotManager.cs" />
     <Compile Include="Config\BotConfigs.cs" />
-    <Compile Include="Config\ConfigWorker.cs" />
-    <Compile Include="Config\Converter.cs" />
+    <Compile Include="Config\ConfigSerializer.cs" />
     <Compile Include="Config\ConfigValue.cs" />
+    <Compile Include="Config\Proxy.cs" />
+    <Compile Include="Config\ProxyManager.cs" />
     <Compile Include="Config\RawData\Button.cs" />
     <Compile Include="Config\RawData\Dialog.cs" />
     <Compile Include="Config\RawData\DialogsContainer.cs" />
@@ -64,23 +81,28 @@
     <Compile Include="Config\RawData\ConfigValuesContainer.cs" />
     <Compile Include="Config\RawData\LangValuesContainer.cs" />
     <Compile Include="Core\BotAPI.cs" />
+    <Compile Include="Core\BotApiStarter.cs" />
     <Compile Include="Core\ChatCommand.cs" />
     <Compile Include="Core\ChatCommandsProvider.cs" />
     <Compile Include="Core\Data\BotExceptionResponse.cs" />
     <Compile Include="Core\Data\BotResponse.cs" />
+    <Compile Include="Core\Data\ButtonData.cs" />
+    <Compile Include="Core\Data\CallbackData.cs" />
     <Compile Include="Core\Data\DataParser.cs" />
     <Compile Include="Core\Data\UserContextState.cs" />
     <Compile Include="Core\Data\UserInputContextController.cs" />
     <Compile Include="Core\Data\BotRequest.cs" />
-    <Compile Include="Core\Dialogs\IDialogsContainer.cs" />
+    <Compile Include="Core\Dialogs\RegistrationDialog.cs" />
     <Compile Include="Core\IRequestValidate.cs" />
     <Compile Include="Core\OperationsContainer.cs" />
     <Compile Include="Core\Operations\BaseMessageOperation.cs" />
     <Compile Include="Core\Operations\BaseOperation.cs" />
     <Compile Include="Core\Operations\OperationArgs.cs" />
+    <Compile Include="Core\Operations\OperationFiller.cs" />
     <Compile Include="Core\Operations\OperationResult.cs" />
     <Compile Include="Core\Operations\SendMessage.cs" />
     <Compile Include="Core\UIDispatcher.cs" />
+    <Compile Include="Db\IChat.cs" />
     <Compile Include="Db\IUser.cs" />
     <Compile Include="Db\BaseUserController.cs" />
     <Compile Include="Db\IUserLogMessage.cs" />
@@ -88,30 +110,27 @@
     <Compile Include="Db\IUserRole.cs" />
     <Compile Include="Debug\DebugMessage.cs" />
     <Compile Include="Debug\IDebuger.cs" />
-    <Compile Include="Debug\IDebugUnit.cs" />
     <Compile Include="Debug\LogController.cs" />
     <Compile Include="Debug\TextLogger.cs" />
     <Compile Include="Core\DialogsProvider.cs" />
     <Compile Include="Core\Dialogs\Button.cs" />
     <Compile Include="Core\Dialogs\Dialog.cs" />
-    <Compile Include="Core\Dialogs\DialogContainer.cs" />
     <Compile Include="Core\Dialogs\IButton.cs" />
     <Compile Include="Core\Dialogs\IUserResponseAwaiter.cs" />
     <Compile Include="Core\Dialogs\PaginatedDialog.cs" />
-    <Compile Include="Core\Dialogs\MultiButtonsDialog.cs" />
-    <Compile Include="Core\Dialogs\MultiPageDialog.cs" />
-    <Compile Include="Core\Dialogs\QuizDialog.cs" />
-    <Compile Include="Core\Dialogs\QuizSeriesDialog.cs" />
+    <Compile Include="Core\Dialogs\SerialDialog.cs" />
     <Compile Include="Core\Dialogs\RootDialog.cs" />
+    <Compile Include="DIcontainerBase.cs" />
     <Compile Include="Editor\EditorCore.cs" />
+    <Compile Include="Editor\EditorRepository.cs" />
     <Compile Include="Editor\IEditeble.cs" />
-    <Compile Include="Editor\IEditor.cs" />
+    <Compile Include="Editor\IEntityEditor.cs" />
+    <Compile Include="IBotCore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <Folder Include="Debug\QA\" />
-  </ItemGroup>
-  <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

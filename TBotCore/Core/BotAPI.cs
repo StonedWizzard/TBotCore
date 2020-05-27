@@ -19,10 +19,8 @@ namespace TBotCore.Core
     /// <summary>
     /// Telegram api wrapper (above one more wrapper;) )
     /// </summary>
-    class BotAPI: IDebugUnit
+    public class BotAPI
     {
-        protected readonly IDebuger _Debuger;
-        public IDebuger Debuger => _Debuger;
         public readonly TelegramBotClient Api;
 
         protected readonly BotConfigs Configs;
@@ -33,38 +31,33 @@ namespace TBotCore.Core
         protected readonly ChatCommandsProvider CommandsProvider;
 
         public readonly User BotInfo;
+        public string BotName { get; private set; }
 
-        /// <summary>
-        /// ToDo - add proxy support!!!!!!!!!!!!!!
-        /// </summary>
-        public BotAPI(BotConfigs configs, BotManager botManager, BaseUserController userController, IDebuger debuger)
+        public BotAPI(Proxy proxy = null)
         {
-            if (configs == null)
-                throw new ArgumentNullException("configs", "Can't initialize bot with null configs!");
+            Configs = BotManager.Core.Configs;
+            Dialogs = BotManager.Core.Dialogs;
 
-            Configs = configs;
-            _Debuger = debuger;
-
-            Dialogs = botManager.Dialogs;
-            ContextController = new UserInputContextController(Debuger);
-            UiController = new UIDispatcher(_Debuger, ContextController);
-            UsersController = userController;
+            ContextController = new UserInputContextController();
+            UiController = BotManager.Core.Repository.CreateUiDispatcher(ContextController);
+            UsersController = BotManager.Core.Repository.CreateUserController();
 
             // start telegram api initializing
             HttpClient httpClient = null;
             try
             {
-                Debuger?.LogSystem(new DebugMessage($"Start initializing Telegram Bot Api...\r\nUse proxy: {configs.UseProxy}"));
-                ContextController = new UserInputContextController(Debuger);
+                BotManager.Core?.LogController?.LogSystem(new DebugMessage($"Start initializing Telegram Bot Api...\r\nUse proxy: {Configs.UseProxy}"));
 
-                if (configs.UseProxy)
+                if (Configs.UseProxy)
                 {
-                    Debuger?.LogImportant(new DebugMessage($"Proxy enabled. Use proxy: <<xxx>>"));
+                    BotManager.Core?.LogController?.LogImportant(new DebugMessage($"Proxy enabled. Use proxy: <<xxx>>"));
                     // init httpClient
-                    // ...
+                    httpClient = new HttpClient();
+
+                    BotManager.Core?.LogController?.LogImportant(new DebugMessage($"Proxy NOT IMPLEMENTED"));
                 }
 
-                Api = new TelegramBotClient(configs.BotHash, httpClient);
+                Api = new TelegramBotClient(Configs.BotHash, httpClient);
                 Api.OnMessage += Api_OnMessage;
                 Api.OnCallbackQuery += Api_OnCallbackQuery;
                 Api.OnInlineQuery += Api_OnInlineQuery;
@@ -74,23 +67,22 @@ namespace TBotCore.Core
 
                 // here we get some useful bot info and at the same time
                 // checks if connection established or not.
-                Debuger?.LogImportant(new DebugMessage($"Conect Api client with bot token: <<{configs.BotHash}>> ..."));
+                BotManager.Core?.LogController?.LogImportant(new DebugMessage($"Conect Api client with bot token: <<{Configs.BotHash}>> ..."));
                 System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
                 sw.Start();
 
-                var meTsk = Api.GetMeAsync();
-                meTsk.Start();
-                meTsk.Wait();
-                BotInfo = meTsk.Result;
+                BotInfo = Api.GetMeAsync().Result;
+                BotName = BotInfo.Username;
 
                 sw.Stop();
-                Debuger?.LogSucces(new DebugMessage($"Conection is cuccess (response time - {sw.Elapsed})\r\n--> Bot Api initialized and ready!"));
+                BotManager.Core?.LogController?
+                    .LogSucces(new DebugMessage($"Conection is cuccess (response time - {sw.Elapsed})\r\n--> Bot Api initialized and ready!"));
             }
             catch(Exception e)
             {
                 // log critical error
                 // invoke LogCritical implying app shutdown!
-                Debuger?.LogCritical(new DebugMessage("Api initialization failed!", "BotApi()", e));
+                BotManager.Core?.LogController?.LogCritical(new DebugMessage("Api initialization failed!", "BotApi()", e));
             }
             finally 
             {
@@ -103,13 +95,13 @@ namespace TBotCore.Core
 
         public void StartReceiving()
         {
-            Debuger?.LogImportant(new DebugMessage($"Telegram bot start receiving messages!"));
+            BotManager.Core?.LogController?.LogImportant(new DebugMessage($"Telegram bot start receiving messages!"));
             Api.StartReceiving();
         }
 
         public void StopReceiving()
         {
-            Debuger?.LogImportant(new DebugMessage($"Telegram bot stop receiving messages!"));
+            BotManager.Core?.LogController?.LogImportant(new DebugMessage($"Telegram bot stop receiving messages!"));
             Api.IsReceiving = false;
         }
 
@@ -155,7 +147,7 @@ namespace TBotCore.Core
             }
             catch (InvalidCastException exp)
             {
-                Debuger?.LogError(new DebugMessage("Can't cast user type!\r\nApi call was cancelled.", "Api_OnMessage()", exp));
+                BotManager.Core?.LogController?.LogError(new DebugMessage("Can't cast user type!\r\nApi call was cancelled.", "Api_OnMessage()", exp));
                 return; // breake this api_call
             }
             Message msg = e.Message;
@@ -279,7 +271,7 @@ namespace TBotCore.Core
                     else
                     {
                         await UsersController.CompleateRegistration(user);
-                        Debuger?.LogWarning(new DebugMessage("Custom registration steps seems missed!", "BotApi:OnMessage",
+                        BotManager.Core?.LogController?.LogWarning(new DebugMessage("Custom registration steps seems missed!", "BotApi:OnMessage",
                             $"UserId: {user.UserId}, UserName: {user.UserName}"));
                     }
                 }
@@ -291,7 +283,7 @@ namespace TBotCore.Core
             }
             else
             {
-                Debuger?.LogError(new DebugMessage("The user creation in db failed", "BotApi:OnMessage",
+                BotManager.Core?.LogController?.LogError(new DebugMessage("The user creation in db failed", "BotApi:OnMessage",
                     $"UserId: {user.UserId}, UserName: {user.UserName}"));
 
                 // nothing more to do - escape from method;

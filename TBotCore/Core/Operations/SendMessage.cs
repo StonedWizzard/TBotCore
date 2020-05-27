@@ -19,10 +19,7 @@ namespace TBotCore.Core.Operations
     /// </summary>
     class SendMessage : BaseMessageOperation
     {
-        public SendMessage(OperationsContainer owner) : base(owner)
-        {
-            Name = "SendMessageOperation";
-        }
+        public SendMessage(OperationsContainer owner) : base(owner) { }
 
         public async override Task<OperationResult> Execute(OperationArgs args)
         {

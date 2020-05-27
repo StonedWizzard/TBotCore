@@ -9,7 +9,7 @@ using CD = TBotCore.Core.Dialogs;
 namespace TBotCore.Config.RawData
 {
     [Serializable]
-    class Button
+    public class Button
     {
         /// <summary>
         /// Dialog/Button id
@@ -34,8 +34,8 @@ namespace TBotCore.Config.RawData
 
         public Button()
         {
-            Id = "";
-            Name = "";
+            Id = "null";
+            Name = "???";
             Data = "";
             DisplayPriority = -1;
             Type = typeof(CD.Button).ToString();

@@ -10,7 +10,7 @@ namespace TBotCore.Core.Data
     /// <summary>
     /// Response from dialog, operation and etc.
     /// </summary>
-    class BotResponse
+    public class BotResponse
     {
         public readonly ResponseType Type;
         public readonly object Data;

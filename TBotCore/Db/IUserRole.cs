@@ -6,11 +6,13 @@ using System.Threading.Tasks;
 
 namespace TBotCore.Db
 {
-    interface IUserRole
+    public interface IUserRole
     {
+        public int Id { get; set; }
+
         /// <summary>
         /// Foreign key in users collection
         /// </summary>
-        public int UserDbId { get; set; }
+        public int UserId { get; set; }
     }
 }

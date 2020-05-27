@@ -18,22 +18,21 @@ namespace TBotCore.Core
     /// <summary>
     /// Translate dialogs (from response) into telegram messages
     /// </summary>
-    class UIDispatcher : IDebugUnit
+    public class UIDispatcher
     {
-        IDebuger _Debuger;
-        public IDebuger Debuger => _Debuger;
         protected readonly BotConfigs Configs;
         protected readonly UserInputContextController ContextController;
         protected readonly OperationsContainer Operations;
         protected readonly DialogsProvider Dialogs;
+        protected readonly DataParser CallbackDataParser;
 
-        public UIDispatcher(IDebuger debuger, UserInputContextController uicc)
+        public UIDispatcher(UserInputContextController uicc)
         {
             // just setup references 
-            _Debuger = debuger;
             ContextController = uicc;
             Configs = BotManager.Core.Configs;
-            Operations = BotManager.Core.BotOperations;
+            Operations = BotManager.Core.Operations;
+            CallbackDataParser = BotManager.Core.Repository.CreateCallbackParser();
         }
 
         /// <summary>
@@ -88,7 +87,8 @@ namespace TBotCore.Core
             {
                 var rsp = response as BotExceptionResponse;
                 // print warning message to log
-                Debuger?.LogWarning(new DebugMessage("Exception occured during dialog execution!", "Uidispatcher.HandleResponse()", rsp.Message));
+                BotManager.Core?.LogController?
+                    .LogWarning(new DebugMessage("Exception occured during dialog execution!", "Uidispatcher.HandleResponse()", rsp.Message));
 
                 // print response to user if responce allow it
                 if (rsp.ShowNotification)
@@ -99,7 +99,8 @@ namespace TBotCore.Core
                     OperationResult result = await Operations["SendMessageOperation"].Execute(opArgs);
                     if (result.ResultType == OperationResult.OperationResultType.Failed || result.ResultType == OperationResult.OperationResultType.Unknown)
                     {
-                        Debuger?.LogError(new DebugMessage("Can't show user error notification!", "Uidispatcher.HandleResponse()", result.ExceptionMessage));
+                        BotManager.Core?.LogController?
+                            .LogError(new DebugMessage("Can't show user error notification!", "Uidispatcher.HandleResponse()", result.ExceptionMessage));
 
                         // nullify user context - we definitely have something uncommon
                         ContextController.ClearState(response.User);
@@ -132,7 +133,13 @@ namespace TBotCore.Core
             else if(response.Type == BotResponse.ResponseType.Data)
             {
                 // how act????
-                throw new NotImplementedException();
+                // i know how, bitch)
+
+                // first transform raw data
+                CallbackData callback = CallbackDataParser.ParseData((string)response.Data);
+
+                // next - do something with this callback
+                // supose make some separete method - too much logic here...
             }
             // response is plain text, so display it and keep state unchanged
             else if(response.Type == BotResponse.ResponseType.Text)
@@ -151,7 +158,7 @@ namespace TBotCore.Core
             {
                 // response is null or exception type, witch is wrong
                 // make log entry, send user back and change user state
-                Debuger?.LogWarning(new DebugMessage("Response can't be processed!", "UiDispatcher.HandleResponse()", 
+                BotManager.Core?.LogController?.LogWarning(new DebugMessage("Response can't be processed!", "UiDispatcher.HandleResponse()", 
                     $"UserId: {response.User.UserId}"));
 
                 await SendBack();
@@ -170,11 +177,6 @@ namespace TBotCore.Core
             // quiz dialogs - group by sortOrderVal
             // pagination works by pageState from userState (or first by default)
 
-            // checks if dialog can contain other dialogs
-            if((dialog is IDialogsContainer) == true)
-            {
-
-            }
 
             // anyway build support buttons
 
@@ -199,11 +201,6 @@ namespace TBotCore.Core
             {
                 if (dialog == null)
                     return $"*>???\r\n{content}";
-
-                // set not quiz dialog as last section
-                // but his owner
-                if (dialog is QuizDialog)
-                    dialog = dialog.Owner;
 
                 string result = content;
                 string path = "";

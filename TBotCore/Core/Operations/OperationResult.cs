@@ -9,7 +9,7 @@ namespace TBotCore.Core.Operations
     /// <summary>
     /// Result of any operation
     /// </summary>
-    struct OperationResult
+    public struct OperationResult
     {
         /// <summary>
         /// Result of operation

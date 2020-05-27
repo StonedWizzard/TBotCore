@@ -10,7 +10,7 @@ namespace TBotCore.Core.Operations
     /// <summary>
     /// Collection of arguments given to operation
     /// </summary>
-    class OperationArgs
+    public class OperationArgs
     {
         public IUser User { get; protected set; }
         public Dictionary<string, object> Args { get; protected set; }

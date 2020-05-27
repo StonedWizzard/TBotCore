@@ -12,7 +12,7 @@ namespace TBotCore.Core.Data
     /// Describe the user current dialog state.
     /// Context controller make decisions using this class.
     /// </summary>
-    class UserContextState
+    public class UserContextState
     {
         /// <summary>
         /// Reference to user

@@ -9,7 +9,7 @@ namespace TBotCore.Core
     /// <summary>
     /// Provides validation method for commands, operations and dialogs
     /// </summary>
-    interface IRequestValidate
+    public interface IRequestValidate
     {
         /// <summary>
         /// Check if user role allow access to this member

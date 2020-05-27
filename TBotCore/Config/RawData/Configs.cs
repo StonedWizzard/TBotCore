@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
+using TBotCore.Core;
 
 namespace TBotCore.Config.RawData
 {
@@ -42,17 +44,24 @@ namespace TBotCore.Config.RawData
         /// </summary>
         public List<ProxyValue> ProxyServers;
 
+        /// <summary>
+        /// Container with bot dialogs, support buttons
+        /// Also represent root dialog
+        /// </summary>
+        public DialogsContainer Dialogs;
+
         public Configs()
         {
             CustomValues = new ConfigValuesContainer(CustomValuesSectionName);
             LanguageValues = new LangValuesContainer();
             ProxyServers = new List<ProxyValue>();
+            Dialogs = new DialogsContainer();
         }
 
         /// <summary>
-        /// Build serializeble configs
+        /// Build serializeble configs from work data
         /// </summary>
-        public Configs(BotConfigs configs)
+        public Configs(BotConfigs configs, DialogsProvider dialogs)
         {
             BasicDelay = configs.BasicDelay;
             BotHash = configs.BotHash;
@@ -60,7 +69,13 @@ namespace TBotCore.Config.RawData
 
             CustomValues = new ConfigValuesContainer(configs.GetCustomValues(), CustomValuesSectionName);
             LanguageValues = new LangValuesContainer(configs.TextStrings);
+
+            // fill proxies
             ProxyServers = new List<ProxyValue>();
+            foreach (var prox in configs.Proxies)
+                ProxyServers.Add(new ProxyValue(prox));
+
+            Dialogs = new DialogsContainer(dialogs);
         }
 
         /// <summary>
@@ -72,6 +87,9 @@ namespace TBotCore.Config.RawData
             result.BasicDelay = 100;
             result.BotHash = "Null";
             result.BotName = "NoName";
+
+            result.LanguageValues = LangValuesContainer.GetDefaultStrings();
+            result.Dialogs = new DialogsContainer();
 
             //fill value containers
             result.CustomValues.Array.Add(new ConfigValue()

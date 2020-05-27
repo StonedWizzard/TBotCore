@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace TBotCore.Core.Dialogs
 {
     /// <summary>
-    /// Provides awaiting of user input.
+    /// Allow dialogs enable awaiting of user input and process that data.
     /// </summary>
-    interface IUserResponseAwaiter
+    public interface IUserResponseAwaiter
     {
     }
 }

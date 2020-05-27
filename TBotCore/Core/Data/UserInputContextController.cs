@@ -12,19 +12,16 @@ namespace TBotCore.Core.Data
     /// Tracks user input and callbacks.
     /// Controlls bot behaviour based on user inputs
     /// </summary>
-    class UserInputContextController : IDebugUnit
+    public class UserInputContextController
     {
         /// <summary>
         /// Virtual (means only in ram, not serialized or saved anyway) dictionary
         /// where key is userId and value - context with response cache
         /// </summary>
         Dictionary<int, UserContextState> ContextCollection;
-        IDebuger _Debuger;
-        public IDebuger Debuger => _Debuger;
 
-        public UserInputContextController(IDebuger debuger)
+        public UserInputContextController()
         {
-            _Debuger = debuger;
             ContextCollection = new Dictionary<int, UserContextState>();
         }
 

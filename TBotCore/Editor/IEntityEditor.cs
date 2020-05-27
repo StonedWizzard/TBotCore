@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TBotCore.Core.Dialogs
+namespace TBotCore.Editor
 {
     /// <summary>
-    /// Interface allow store in dialog other dialogs 
+    /// Editable entity. Apply to it, not to work-on data class!
     /// </summary>
-    interface IDialogsContainer
+    interface IEntityEditor<TOwner>
     {
-        List<Dialog> Dialogs { get; }
+        TOwner EditableObject { get; }
     }
 }

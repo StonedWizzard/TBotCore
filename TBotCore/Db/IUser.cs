@@ -11,18 +11,12 @@ namespace TBotCore.Db
     /// This interface should be umplemented with db user model
     /// in application for compability.
     /// </summary>
-    interface IUser
+    public interface IUser
     {
-        /// <summary>
-        /// Db Id
-        /// </summary>
         int Id { get; set; }
-        /// <summary>
-        /// Telegram UserId
-        /// </summary>
         int UserId { get; set; }
-
         string UserName { get; set; }
+
         string FirstName { get; set; }
         string LastName { get; set; }
 

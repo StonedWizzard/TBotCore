@@ -9,8 +9,11 @@ namespace TBotCore.Db
     /// <summary>
     /// Account settings for user
     /// </summary>
-    interface IUserPreferences
+    public interface IUserPreferences
     {
+        public int Id { get; set; }
+
+        public int UserId { get; set; }
         string Language { get; set; }
     }
 }

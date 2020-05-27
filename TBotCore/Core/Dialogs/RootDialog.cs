@@ -8,15 +8,11 @@ using Rd = TBotCore.Config.RawData;
 namespace TBotCore.Core.Dialogs
 {
     /// <summary>
-    /// Root dialog. Can be onhe and only one!
-    /// It's like start point for bot conversation
+    /// Root dialog - start point of any bot.
+    /// Don't add any logic, just filler.
     /// </summary>
-    sealed class RootDialog : MultiButtonsDialog
+    public sealed class RootDialog : Dialog
     {
-
-        public RootDialog(Rd.Dialog dialog) : base(dialog, null)
-        {
-
-        }
+        public RootDialog(Rd.Dialog dialog) : base(dialog, null) { }
     }
 }

@@ -11,28 +11,19 @@ namespace TBotCore.Db
     /// Define methods to work with user data.
     /// Reads and update user records in Db
     /// </summary>
-    abstract class BaseUserController : IDebugUnit
+    public abstract class BaseUserController
     {
         /// <summary>
         /// Provides user cache for optimization (reduces db calls)
         /// </summary>
-        protected Dictionary<int, IUser> UserCache;
-        protected Type UserInstanceType;
+        protected Dictionary<long, IUser> UserCache;
 
-        protected readonly IDebuger _Debuger;
-        public IDebuger Debuger => _Debuger;
-
-        protected BaseUserController(IDebuger debuger, Type userInstanceType)
-        {
-            _Debuger = debuger;
-            UserInstanceType = userInstanceType;
-        }
 
         /// <summary>
         /// Checks if such user record keeps in Db
         /// Attention - not overrided method checks only cache!
         /// </summary>
-        public async virtual Task<bool> IsUserExist(int userId)
+        public async virtual Task<bool> IsUserExist(long userId)
         {
             await Task.Delay(1);
 
@@ -72,7 +63,7 @@ namespace TBotCore.Db
         /// </summary>
         public virtual IUser ConvertUser(Telegram.Bot.Types.User user, bool isRegistered = false)
         {
-            IUser result = Activator.CreateInstance(UserInstanceType) as IUser;
+            IUser result = BotManager.Core.Repository.CreateUser();
             if (result == null)
                 throw new InvalidCastException($"Cannot convert user [Id={user.Id}] to apopriate type!");
 

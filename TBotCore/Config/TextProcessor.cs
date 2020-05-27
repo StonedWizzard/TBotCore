@@ -2,19 +2,33 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+using TBotCore.Debug;
+using TBotCore.Editor;
 
 namespace TBotCore.Config
 {
     /// <summary>
     /// Contains language settings and text strings
     /// </summary>
-    public sealed class TextProcessor
+    public sealed class TextProcessor : IEditable<TextProcessor.EditebleTextProcessor>
     {
-        public List<string> Languages { get; private set; }
-        public List<string> TextStrings { get; private set; }
+        List<string> _Languages;
+        public IEnumerable<string> Languages 
+        {
+            get => _Languages.ToImmutableList();
+            private set => _Languages = value.ToList();
+        }
+        List<string> _TextStrings;
+        public IEnumerable<string> TextStrings 
+        {
+            get => _TextStrings.ToImmutableList(); 
+            private set => _TextStrings = value.ToList(); 
+        }
 
         private Dictionary<string, StringDictionary> TextDict;
         public string this[string lang, string str]
@@ -22,7 +36,7 @@ namespace TBotCore.Config
             get 
             {
                 // language is not defined - return raw string key
-                if (!LanguageExist(lang))
+                if (!IsLanguageExist(lang))
                 {
                     return str;
                 }
@@ -35,18 +49,13 @@ namespace TBotCore.Config
             }
         }
 
-        private Debug.IDebuger Debuger;
-
-
-        public TextProcessor(Debug.IDebuger debuger)
+        public TextProcessor()
         {
-            Debuger = debuger;
             TextDict = new Dictionary<string, StringDictionary>();
             Languages = new List<string>();
             TextStrings = new List<string>();
         }
-
-        public TextProcessor(Debug.IDebuger debuger, RawData.LangValuesContainer textConfig) : this(debuger)
+        public TextProcessor(RawData.LangValuesContainer textConfig) : this()
         {
             Languages = textConfig.Languages.Distinct().ToList();
             TextStrings = textConfig.TextStrings.Distinct().ToList();
@@ -75,48 +84,123 @@ namespace TBotCore.Config
         /// <summary>
         /// Check if such language supported by bot
         /// </summary>
-        public bool LanguageExist(string lang) { return Languages.Contains(lang); }
+        public bool IsLanguageExist(string lang) { return Languages.Contains(lang); }
 
         /// <summary>
-        /// Add new language 
-        /// and duplicate all text strings to new dictionary
+        /// Check if such string key exist
         /// </summary>
-        public bool AddLanguage(string lang)
-        {
-            if (!LanguageExist(lang))
-            {
-                Languages.Add(lang);
-                Dictionary<string, string> newLangDictionary = new Dictionary<string, string>();
+        public bool IsTextStringExist(string key) { return TextStrings.Contains(key); }
 
-                //copy all text strings to newDict
+
+
+        #region Editors things
+        public EditebleTextProcessor GetEditable()
+        {
+            return new EditebleTextProcessor(this);
+        }
+
+        public class EditebleTextProcessor : IEntityEditor<TextProcessor>
+        {
+            public TextProcessor EditableObject { get; private set; }
+
+            public EditebleTextProcessor(TextProcessor owner) { EditableObject = owner; }
+
+            /// <summary>
+            /// Add new language 
+            /// and duplicate all text strings to new dictionary
+            /// </summary>
+            public bool AddLanguage(string lang)
+            {
+                if (!IsLanguageExist(lang))
+                {
+                    EditableObject._Languages.Add(lang);
+                    StringDictionary newLangDictionary = new StringDictionary();
+
+                    //copy all text strings to newDict
+                    foreach (string str in EditableObject._TextStrings)
+                        newLangDictionary.Add(str, "");
+
+                    EditableObject.TextDict.Add(lang, newLangDictionary);
+                    return true;
+                }
+                return false;
+            }
+
+            /// <summary>
+            /// Adds new text string
+            /// </summary>
+            public bool AddTextString(string key)
+            {
+                return AddTextString(key, "");
+            }
+            /// <summary>
+            /// Adds new text string and value within
+            /// </summary>
+            public bool AddTextString(string key, string value)
+            {
+                if(!IsTextStringExist(key))
+                {
+                    foreach (string lang in EditableObject.Languages)
+                        EditableObject.TextDict[lang].Add(key, value);
+
+                    EditableObject._TextStrings.Add(key);
+                    return true;
+                }
+
+                // can't add new textString with same Id (key)
+                return false;
+            }
+
+
+            public bool IsTextStringExist(string key)
+            {
+                return EditableObject.IsTextStringExist(key);
+            }
+
+            public bool IsLanguageExist(string lang)
+            {
+                return EditableObject.IsLanguageExist(lang);
+            }
+
+
+            /// <summary>
+            /// Remove specific text string from all collections
+            /// </summary>
+            public bool RemoveTextString(string key)
+            {
+                if (IsTextStringExist(key))
+                {
+                    foreach (string lang in EditableObject.Languages)
+                        EditableObject.TextDict[lang].Remove(key);
+
+                    EditableObject._TextStrings.Remove(key);
+                    return true;
+                }
 
                 return true;
             }
-            return false;
+
+            public bool RemoveLanguage(string lang)
+            {
+                if (IsLanguageExist(lang))
+                {
+                    EditableObject.TextDict.Remove(lang);
+                    EditableObject._Languages.Remove(lang);
+
+                    return true;
+                }
+
+                return true;
+            }
+
+            /// <summary>
+            /// Edit specific text string
+            /// </summary>
+            public void EditTextString(string lang, string key, string value)
+            {
+                EditableObject.TextDict[lang][key] = value;
+            }
         }
-
-        /// <summary>
-        /// Adds new text string
-        /// </summary>
-        public void AddTextString(string key)
-        {
-
-        }
-
-        /// <summary>
-        /// Remove specific text string from all collections
-        /// </summary>
-        public void RemoveTextString(string key)
-        {
-
-        }
-
-        /// <summary>
-        /// Edit specific text string
-        /// </summary>
-        public void EditTextString(string lang, string key, string value)
-        {
-
-        }
+        #endregion
     }
 }

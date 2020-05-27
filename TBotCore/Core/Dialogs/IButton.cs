@@ -9,7 +9,7 @@ namespace TBotCore.Core.Dialogs
     /// <summary>
     /// Provide properties to correct displaing item like TgButton
     /// </summary>
-    interface IButton : IRequestValidate
+    public interface IButton : IRequestValidate
     {
         /// <summary>
         /// Unique ID in settings storage and virtual memory.
