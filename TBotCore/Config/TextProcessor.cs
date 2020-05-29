@@ -38,14 +38,16 @@ namespace TBotCore.Config
                 // language is not defined - return raw string key
                 if (!IsLanguageExist(lang))
                 {
+                    BotManager.Core?.LogController?.LogWarning(new DebugMessage($"Language '{lang}' not fiound!"));
                     return str;
                 }
 
-                try 
-                { 
-                    return TextDict[lang][str]; 
+                try { return TextDict[lang][str]; }
+                catch (Exception e)
+                {
+                    BotManager.Core?.LogController?.LogWarning(new DebugMessage("Text string error!", $"TextProcessor[{lang},{str}]", e));
+                    return str;
                 }
-                catch { return str; }
             }
         }
 

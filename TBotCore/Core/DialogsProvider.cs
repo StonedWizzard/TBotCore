@@ -234,6 +234,8 @@ namespace TBotCore.Core
                 if(!EditableObject.DialogsTable.ContainsKey(dia.Id))
                 {
                     Dialog parent = EditableObject.GetDialog(parentId);
+                    if (parent == null) return false;
+
                     // prevent serial dialogs have childs
                     if (parent.Owner is SerialDialog)
                         return false;

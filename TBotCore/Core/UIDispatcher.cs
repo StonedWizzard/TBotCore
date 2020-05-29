@@ -56,7 +56,7 @@ namespace TBotCore.Core
             bool replaceMsg = true;
 
             #region service method(s)
-            async Task SendBack()
+            async Task<bool> SendBack()
             {
                 Dialog dialog =     // owner dialog is like step aback
                     response.Dialog.Owner == null ? Dialogs.RootDialog : response.Dialog.Owner;
@@ -68,8 +68,9 @@ namespace TBotCore.Core
 
                 // set user context and return to upper dialog
                 ContextController.SetState(new UserContextState(response.User, dialog, msgId));
+                return true;
             }
-            async Task SendToDialog()
+            async Task<bool> SendToDialog()
             {
                 Dialog dialog = response.Dialog;
                 OpArgs["Content"] = ProcessContent(TranslateContent(dialog.Content, userPreferences), dialog, IsAddHeader);
@@ -79,6 +80,7 @@ namespace TBotCore.Core
 
                 // set user context and return to upper dialog
                 ContextController.SetState(new UserContextState(response.User, dialog, msgId));
+                return true;
             }
             #endregion
 

@@ -15,7 +15,7 @@ namespace TBotCore.Db
         /// <summary>
         /// Foreign key in users collection
         /// </summary>
-        public int UserId { get; set; }
+        public long UserId { get; set; }
         public string Message { get; set; }
         public DateTime Time { get; set; }
     }

@@ -44,9 +44,10 @@ namespace SampleTgBot
                 // if db ok - activate bot core
                 // otherwise do nothing, keep error messages on console
                 if (dbInitializer.InitializeConnection())
+                {
                     Bot = new BotManager(Repository, Log).StartBot();
-
-                this.Invoke((Action)(() => { Text = $"@{Bot.BotApiManager.BotName}, online"; }));
+                    this.Invoke((Action)(() => { Text = $"@{Bot.BotApiManager.BotName}, online"; }));
+                }
             }
             catch(Exception e)
             {

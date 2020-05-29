@@ -74,7 +74,7 @@ namespace TBotCore
             LogController.LogSucces(new DebugMessage("Ok!"));
 
             LogController.LogSystem(new DebugMessage("Initializing bot commands..."));
-            // >>doTo<<
+            Commands = Repository.CreateCommands();
             LogController.LogSucces(new DebugMessage("Ok!"));
 
             // set singleton reference
@@ -115,7 +115,7 @@ namespace TBotCore
             BotApiStarter botApiStartup = Repository.CreateBotInitializer();
             LogController.LogSystem(new DebugMessage("Start bot..."));
             BotApiManager = botApiStartup.InitializeApi();
-
+            BotApiManager.StartReceiving();
             this.IsInitialized = true;
             return this;
         }

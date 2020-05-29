@@ -19,9 +19,6 @@ namespace TBotCore.Core.Data
 
         public BotResponse(object data, ResponseType type, IUser user)
         {
-            if (type == ResponseType.Exception)
-                throw new ArgumentException("Response type can't be 'Exception'! Use BotResponseException instead", "type");
-
             Data = data;
             Type = type;
             User = user;

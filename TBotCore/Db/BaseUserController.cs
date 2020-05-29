@@ -18,6 +18,18 @@ namespace TBotCore.Db
         /// </summary>
         protected Dictionary<long, IUser> UserCache;
 
+        /// <summary>
+        /// Create user record in cache or update existed
+        /// </summary>
+        protected virtual void UpdateCache(IUser user)
+        {
+            if (user == null) return;
+
+            if (UserCache.ContainsKey(user.UserId))
+                UserCache[user.UserId] = user;
+            else
+                UserCache.Add(user.UserId, user);
+        }
 
         /// <summary>
         /// Checks if such user record keeps in Db
@@ -26,9 +38,7 @@ namespace TBotCore.Db
         public async virtual Task<bool> IsUserExist(long userId)
         {
             await Task.Delay(1);
-
-            if (UserCache.ContainsKey(userId)) return true;
-            else return false;
+            return UserCache.ContainsKey(userId);
         }
         /// <summary>
         /// Checks if such user record keeps in Db
@@ -36,9 +46,7 @@ namespace TBotCore.Db
         public async virtual Task<bool> IsUserExist(IUser user)
         {
             await Task.Delay(1);
-
-            if (UserCache.ContainsKey(user.UserId)) return true;
-            else return false;
+            return UserCache.ContainsKey(user.UserId);
         }
 
         /// <summary>

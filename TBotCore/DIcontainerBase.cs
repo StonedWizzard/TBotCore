@@ -69,6 +69,8 @@ namespace TBotCore
         public virtual ConfigSerializer CreateConfigSerializer(string path) { return new ConfigSerializer(path); }
 
         public virtual OperationsContainer CreateOperations() { return new OperationsContainer(); }
+
+        public virtual ChatCommandsProvider CreateCommands() { return new ChatCommandsProvider(); }
         #endregion
     }
 }

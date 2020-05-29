@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,7 +11,15 @@ namespace SampleTgBot.DB
 {
     class User : IUser
     {
+        public User()
+        {
+            RegisteredDate = DateTime.Now;
+            LastVisit = DateTime.Now;
+        }
+
+        [Key]
         public int Id { get; set; }
+        [Index(IsUnique = true)]
         public int UserId { get; set; }
         public string UserName { get; set; }
         public string FirstName { get; set; }
@@ -18,10 +28,18 @@ namespace SampleTgBot.DB
         public string Mail { get; set; }
         public string Login { get; set; }
         public string Password { get; set; }
+
+        public int? UserRoleId { get; set; }
+        [ForeignKey("UserRoleId")]
         public IUserRole UserRole { get; set; }
+
+        public int? UserPreferencesId { get; set; }
+        [ForeignKey("UserPreferencesId")]
         public IUserPreferences UserPreferences { get; set; }
 
         public DateTime LastVisit { get; set; }
+        [Required, DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public DateTime RegisteredDate { get; set; }
         public int MessagesSend { get; set; }
         public bool IsRegistered { get; set; }
 
@@ -64,7 +82,8 @@ namespace SampleTgBot.DB
             result.UserName = user.UserName;
             result.IsRegistered = false;
 
-            result.LastVisit = DateTime.Now;
+            result.UserPreferences = new UserPreferences(result.UserId);
+            result.UserRole = new UserRole(result.UserId);
 
             return result;
         }

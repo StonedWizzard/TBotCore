@@ -28,7 +28,7 @@ namespace TBotCore.Core
         protected readonly UIDispatcher UiController;
         protected readonly BaseUserController UsersController;
         protected readonly DialogsProvider Dialogs;
-        protected readonly ChatCommandsProvider CommandsProvider;
+        protected readonly ChatCommandsProvider Commands;
 
         public readonly User BotInfo;
         public string BotName { get; private set; }
@@ -37,6 +37,7 @@ namespace TBotCore.Core
         {
             Configs = BotManager.Core.Configs;
             Dialogs = BotManager.Core.Dialogs;
+            Commands = BotManager.Core.Commands;
 
             ContextController = new UserInputContextController();
             UiController = BotManager.Core.Repository.CreateUiDispatcher(ContextController);
@@ -140,7 +141,7 @@ namespace TBotCore.Core
             // collect message info
             // and bind tgUser with dbUser
             User tgUser = e.Message.From;
-            IUser user = null;
+            IUser user;
             try
             {
                 user = UsersController.ConvertUser(tgUser);
@@ -150,10 +151,17 @@ namespace TBotCore.Core
                 BotManager.Core?.LogController?.LogError(new DebugMessage("Can't cast user type!\r\nApi call was cancelled.", "Api_OnMessage()", exp));
                 return; // breake this api_call
             }
+            catch (Exception eexp)
+            {
+                BotManager.Core?.LogController?.LogError(new DebugMessage("Can't cast user type!\r\nApi call was cancelled.", "Api_OnMessage()", eexp));
+                return; // breake this api_call
+            }
             Message msg = e.Message;
 
+
             // First of all checks if user registered in db or wherever else
-            if (await UsersController.IsUserExist(tgUser.Id) == false)
+            bool isUserExist = await UsersController.IsUserExist(tgUser.Id);
+            if (isUserExist == false)
             {
                 // all required register actions done in method...
                 await CheckRegistrationState(user);
@@ -232,7 +240,7 @@ namespace TBotCore.Core
 
             // parse message if it command, because them has hiegher priority
             // and able even interrupt serial dialogs!
-            var command = CommandsProvider.GetCommand(txt, user);
+            var command = Commands.GetCommand(txt, user);
             if(command.Item1)
             {
                 // it's realy command, create request
@@ -278,7 +286,7 @@ namespace TBotCore.Core
 
                 // display results and set state
                 // user.Id the same thing as chatId
-                UiController.HandleResponse(response, user.Id);
+                UiController.HandleResponse(response, user.UserId);
                 return;
             }
             else

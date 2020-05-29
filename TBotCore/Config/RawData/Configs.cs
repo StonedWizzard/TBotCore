@@ -117,7 +117,7 @@ namespace TBotCore.Config.RawData
                 ValueFlag = ConfigValue.ValueFlags.Default,
                 ValueType = typeof(bool).ToString(),
                 Name = "Extended registration",
-                Description = "Set 'true' if Bot requires extended registration dialogs."
+                Description = "Set 'true' if Bot requires extended registration dialogs. This mean using registration dialog!"
             });
             result.CustomValues.Array.Add(new ConfigValue()
             {
