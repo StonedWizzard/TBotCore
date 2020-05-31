@@ -39,7 +39,7 @@ namespace TBotCore.Core
 
         public virtual void InitializeOperations()
         {
-            Operations.Add(nameof(SendMessage), new SendMessage(this));
+            Operations.Add(nameof(SendMessageOperation), new SendMessageOperation(this));
         }
 
         public BaseOperation this[string indx]

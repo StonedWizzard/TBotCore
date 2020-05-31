@@ -43,7 +43,7 @@ namespace TBotCore.Core.Operations
         public async virtual Task<OperationResult> Execute(OperationArgs args)
         {
             // checks if all arguments for concrete operation is defined
-            if (RequiredArgsName.Intersect(args.Args.Keys).Any())
+            if (!RequiredArgsName.Intersect(args.Args.Keys).Any())
                 return new OperationResult(null, OperationResult.OperationResultType.Failed, "One or more arguments for operation is missed!");
 
             if (!ValidateUser(args.User.UserRole))

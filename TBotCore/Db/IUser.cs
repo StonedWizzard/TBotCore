@@ -36,15 +36,5 @@ namespace TBotCore.Db
         /// or need additional steps (false)
         /// </summary>
         bool IsRegistered { get; set; }
-
-        /// <summary>
-        /// Return current user role from Db
-        /// </summary>
-        IUserRole GetUserRole();
-
-        /// <summary>
-        /// Return current user preferences from Db.
-        /// </summary>
-        IUserPreferences GetUserPreferences();
     }
 }

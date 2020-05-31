@@ -36,11 +36,17 @@ namespace TBotCore.Core.Data
         /// when UiDispatcher display messages
         /// </summary>
         public int LastMsgId { get; protected set; }
+        /// <summary>
+        /// Index of currentle showed DialogContentPage
+        /// </summary>
+        public int CurrentContentPage { get; protected set; }
 
-        public int CurrentBtnsPage { get; protected set; }
-        public int CurrebtContentPage { get; protected set; }
+        /// <summary>
+        /// Define if context occupied by other thread or not;
+        /// </summary>
+        public bool IsContextOccupied { get; protected set; }
 
-
+        #region
         public UserContextState(IUser user)
         {
             if (user == null)
@@ -65,7 +71,9 @@ namespace TBotCore.Core.Data
         public UserContextState(IUser user, Dialog dialog, ContextState state, int msgId) : this(user, dialog, state)
         {
             LastMsgId = msgId;
+            CurrentState = state;
         }
+        #endregion
 
         /// <summary>
         /// Adds user response to response cache
@@ -74,6 +82,22 @@ namespace TBotCore.Core.Data
         {
             if(!request.IsNull())
                 ResponcesCache.Add(diaId, request);
+        }
+
+        object occMutex = new object();
+        public bool OccupieContext()
+        {
+            if (IsContextOccupied) return false;
+
+            lock (occMutex) { IsContextOccupied = true; }
+            return true;
+        }
+
+        object rMutex = new object();
+        public void RealiseContex()
+        {
+            lock (rMutex)
+                IsContextOccupied = false;
         }
 
         public enum ContextState

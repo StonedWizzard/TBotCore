@@ -95,7 +95,8 @@ namespace TBotCore.Core
                 // print response to user if responce allow it
                 if (rsp.ShowNotification)
                 {
-                    OpArgs["Content"] = TranslateContent((string)response.Data, userPreferences);
+                    string content = TranslateContent((string)response.Data, userPreferences);
+                    OpArgs["Content"] = content;
                     OperationArgs opArgs = new OperationArgs(response.User, OpArgs);
 
                     OperationResult result = await Operations["SendMessageOperation"].Execute(opArgs);
@@ -106,7 +107,7 @@ namespace TBotCore.Core
 
                         // nullify user context - we definitely have something uncommon
                         ContextController.ClearState(response.User);
-                        return;             // and do nothing. no menu and etc...
+                        return;                    // and do nothing. no menu and etc...
                     }
                 }
 

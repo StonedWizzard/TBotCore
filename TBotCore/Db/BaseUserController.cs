@@ -66,21 +66,26 @@ namespace TBotCore.Db
         /// </summary>
         abstract public Task<bool> CompleateRegistration(IUser user);
 
-        /// <summary>
-        /// Converts telegram user record to apopriate user instance
-        /// </summary>
-        public virtual IUser ConvertUser(Telegram.Bot.Types.User user, bool isRegistered = false)
-        {
-            IUser result = BotManager.Core.Repository.CreateUser();
-            if (result == null)
-                throw new InvalidCastException($"Cannot convert user [Id={user.Id}] to apopriate type!");
+        abstract public Task<IUser> GetUser(long userId);
 
+        /// <summary>
+        /// Try get user from db if exist 
+        /// or create new instance for next registration procedures
+        /// </summary>
+        public virtual async Task<IUser> GetOrCreateUser(Telegram.Bot.Types.User user, bool isRegistered = false)
+        {
+            IUser result = await GetUser(user.Id);
+            if (result != null)
+                return result;
+
+            result = BotManager.Core.Repository.CreateUser();
             result.UserId = user.Id;
             result.LastName = user.LastName;
             result.FirstName = user.FirstName;
             result.UserName = user.Username;
             result.IsRegistered = isRegistered;
 
+            _ = await CreateUser(result);
             return result;
         }
     }

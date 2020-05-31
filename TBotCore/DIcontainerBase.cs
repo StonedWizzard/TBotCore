@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TBotCore.Config;
 using TBotCore.Core;
 using TBotCore.Core.Data;
+using TBotCore.Core.Operations;
 using TBotCore.Db;
 
 namespace TBotCore
@@ -71,6 +72,8 @@ namespace TBotCore
         public virtual OperationsContainer CreateOperations() { return new OperationsContainer(); }
 
         public virtual ChatCommandsProvider CreateCommands() { return new ChatCommandsProvider(); }
+
+        public virtual RegistrationOperation CreteRegistrationOp() { return new RegistrationOperation(BotManager.Core.Operations); }
         #endregion
     }
 }

@@ -68,7 +68,7 @@ namespace SampleTgBot.DB
                 UpdateCache(dbUser);
 
                 // add user log record
-                string logMsg = $"Registered new user - @{user} [UserId = {user.UserId}]";
+                string logMsg = $"Registered new user - @{user.UserName} [UserId = {user.UserId}]";
                 await CreateLogMessage(user.UserId, logMsg);
                 TBotCore.BotManager.Core.LogController.LogMessage(new DebugMessage(logMsg));
 
@@ -152,6 +152,26 @@ namespace SampleTgBot.DB
                 Log?.LogError(new TBotCore.Debug.DebugMessage($"Something wrong?! [UserId: {userId}]",
                 "CreateLogMessage()", e));
                 return false;
+            }
+        }
+
+        public override async Task<IUser> GetUser(long userId)
+        {
+            try
+            {
+                using AppDbContext dbContext = new AppDbContext();
+                var dbUser = await dbContext.Users.FirstOrDefaultAsync(x => x.UserId == userId);
+                if (dbUser == null) return dbUser;
+
+                dbUser.UserPreferences = await dbContext.UserPreferences.FirstOrDefaultAsync(x => x.UserId == userId);
+                dbUser.UserRole = await dbContext.UserRoles.FirstOrDefaultAsync(x => x.UserId == userId);
+                return dbUser;
+            }
+            catch (Exception e)
+            {
+                Log?.LogError(new TBotCore.Debug.DebugMessage($"Can't get user! [UserId: {userId}]",
+                    "UpdateUserInfo()", e));
+                return null;
             }
         }
     }

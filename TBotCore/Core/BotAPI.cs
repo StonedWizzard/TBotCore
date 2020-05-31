@@ -22,11 +22,11 @@ namespace TBotCore.Core
     public class BotAPI
     {
         public readonly TelegramBotClient Api;
+        public readonly UserInputContextController ContextController;
+        public readonly BaseUserController UsersController;
 
         protected readonly BotConfigs Configs;
-        protected readonly UserInputContextController ContextController;
         protected readonly UIDispatcher UiController;
-        protected readonly BaseUserController UsersController;
         protected readonly DialogsProvider Dialogs;
         protected readonly ChatCommandsProvider Commands;
 
@@ -81,14 +81,10 @@ namespace TBotCore.Core
             }
             catch(Exception e)
             {
-                // log critical error
-                // invoke LogCritical implying app shutdown!
                 BotManager.Core?.LogController?.LogCritical(new DebugMessage("Api initialization failed!", "BotApi()", e));
             }
             finally 
             {
-                // IS CORRECT???
-                // what if destroy client when all is Ok????
                 httpClient?.Dispose();
             }
         }
@@ -140,53 +136,43 @@ namespace TBotCore.Core
 
             // collect message info
             // and bind tgUser with dbUser
-            User tgUser = e.Message.From;
-            IUser user;
-            try
-            {
-                user = UsersController.ConvertUser(tgUser);
-            }
-            catch (InvalidCastException exp)
-            {
-                BotManager.Core?.LogController?.LogError(new DebugMessage("Can't cast user type!\r\nApi call was cancelled.", "Api_OnMessage()", exp));
-                return; // breake this api_call
-            }
-            catch (Exception eexp)
-            {
-                BotManager.Core?.LogController?.LogError(new DebugMessage("Can't cast user type!\r\nApi call was cancelled.", "Api_OnMessage()", eexp));
-                return; // breake this api_call
-            }
             Message msg = e.Message;
+            User tgUser = e.Message.From;
+            IUser user = await UsersController.GetOrCreateUser(tgUser);
+            BotResponse response = new BotResponse(user);
 
+            // lock the context, so user cant spam thousand messages
+            // while some operations execute!
+            if(!ContextController.GetUserState(user).OccupieContext()) return;
 
             // First of all checks if user registered in db or wherever else
-            bool isUserExist = await UsersController.IsUserExist(tgUser.Id);
-            if (isUserExist == false)
+            if (user.IsRegistered == false)
             {
                 // all required register actions done in method...
-                await CheckRegistrationState(user);
+                response = await DoRegistration(user);
+                UiController.HandleResponse(response, msg.Chat.Id);
+                ContextController.GetUserState(user).RealiseContex();
                 return;
                 // ...just await and exit from here
             }
 
-            // initialize empty response and request variables
-            BotResponse response = new BotResponse(user);
 
             // checks from chat or from user sended message
             // and call according methods for handling input
-            if(msg.From.Id == msg.Chat.Id)              // <<--- Msg from user
+            if(!IsChat())             // <<--- Msg from user
             {
                 var handledInput = HandleUserInputMessage(msg, user);
                 if (handledInput.Item1 == false)
                 {
                     // send user message where says that his input can't parse
-                    response = new BotExceptionResponse($"Can't parse user input! User: {user.Id} Input: {msg}", "txt_parseUserInputException", user);
+                    response = 
+                        new BotExceptionResponse($"Can't parse user input! User: {user.UserId} Input: {msg.Text}\r\n", "txt_parseUserInputException", user);
                 }
                 else
                 {
                     // if user didn't start any conversation yet
                     // or start any but not await users response
-                    var userState = ContextController.GetUserState(tgUser.Id);
+                    var userState = ContextController.GetUserState(user);
                     if (userState == null)
                     {
                         // conversation never starts in this session
@@ -215,13 +201,20 @@ namespace TBotCore.Core
             // so handle it in another way
             else           // <<--- Msg from chat
             {
-                throw new NotImplementedException();
+                throw new NotImplementedException("ToDo!");
                 // >>>>>>>>>>>>>>>>>>>ToDo<<<<<<<<<<<<<<<<<<<<<
             }
 
             // display whatewer results come from response
             // user state updates there
             UiController.HandleResponse(response, msg.Chat.Id);
+            ContextController.GetUserState(user).RealiseContex();
+            // next message can be handled again
+
+            #region
+            // some inline service methods
+            bool IsChat() => msg.From.Id != msg.Chat.Id;
+            #endregion
         }
 
         /// <summary>
@@ -257,48 +250,12 @@ namespace TBotCore.Core
         }
 
         /// <summary>
-        /// Controlls user registration.
         /// In case if user new to bot - call registration procedures
         /// </summary>
-        private async Task CheckRegistrationState(IUser user)
+        private async Task<BotResponse> DoRegistration(IUser user)
         {
-            if (await UsersController.CreateUser(user))
-            {
-                // user just registered so show him just root dialog
-                BotResponse response = await Dialogs.RootDialog.Execute(user);
-
-                // user in db created, provide additional registration steps
-                if (!user.IsRegistered && Configs["IsExtendedRegistration"].GetValue<bool>())
-                {
-                    // start additional registration steps...
-                    if (Dialogs.RegistrationDialog != null)
-                    {
-                        response = await Dialogs.RegistrationDialog.Execute(user);
-                    }
-                    // ...except it not missed
-                    else
-                    {
-                        await UsersController.CompleateRegistration(user);
-                        BotManager.Core?.LogController?.LogWarning(new DebugMessage("Custom registration steps seems missed!", "BotApi:OnMessage",
-                            $"UserId: {user.UserId}, UserName: {user.UserName}"));
-                    }
-                }
-
-                // display results and set state
-                // user.Id the same thing as chatId
-                UiController.HandleResponse(response, user.UserId);
-                return;
-            }
-            else
-            {
-                BotManager.Core?.LogController?.LogError(new DebugMessage("The user creation in db failed", "BotApi:OnMessage",
-                    $"UserId: {user.UserId}, UserName: {user.UserName}"));
-
-                // nothing more to do - escape from method;
-                // inform user about error?
-                await Task.Delay(Configs.BasicDelay);
-                return;
-            }
+            BotResponse response = await Dialogs.RegistrationDialog.Execute(user);
+            return response;
         }
     }
 }

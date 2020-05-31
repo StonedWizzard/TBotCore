@@ -100,7 +100,8 @@
     <Compile Include="Core\Operations\OperationArgs.cs" />
     <Compile Include="Core\Operations\OperationFiller.cs" />
     <Compile Include="Core\Operations\OperationResult.cs" />
-    <Compile Include="Core\Operations\SendMessage.cs" />
+    <Compile Include="Core\Operations\RegistrationOperation.cs" />
+    <Compile Include="Core\Operations\SendMessageOperation.cs" />
     <Compile Include="Core\UIDispatcher.cs" />
     <Compile Include="Db\IChat.cs" />
     <Compile Include="Db\IUser.cs" />

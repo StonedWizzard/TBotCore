@@ -18,43 +18,24 @@ namespace TBotCore.Core.Data
         /// Virtual (means only in ram, not serialized or saved anyway) dictionary
         /// where key is userId and value - context with response cache
         /// </summary>
-        Dictionary<int, UserContextState> ContextCollection;
+        Dictionary<long, UserContextState> ContextCollection;
 
         public UserInputContextController()
         {
-            ContextCollection = new Dictionary<int, UserContextState>();
+            ContextCollection = new Dictionary<long, UserContextState>();
         }
 
         /// <summary>
-        /// Checks if user content exist and availebe. 
-        /// Returns true if context availeble or can be created.
+        /// Returns current user state or create new one
         /// </summary>
-        public bool IsUserContextAvaileble(int userId)
-        {
-            if(ContextCollection.ContainsKey(userId))
-            {
-                // check context state
-                UserContextState context = ContextCollection[userId];
-                if (context.CurrentState == UserContextState.ContextState.Empty)
-                    return true;
-
-                // other cases means it not availeble
-                return false;
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Returns current user state or null
-        /// </summary>
-        public UserContextState GetUserState(int userId)
-        {
-            if (IsUserContextAvaileble(userId)) return null;
-            else return ContextCollection[userId];
-        }
         public UserContextState GetUserState(IUser user)
         {
-            return GetUserState(user.UserId);
+            if (!ContextCollection.ContainsKey(user.UserId))
+            {
+                UserContextState state = new UserContextState(user);
+                return state;
+            }
+            else return ContextCollection[user.UserId];
         }
 
 

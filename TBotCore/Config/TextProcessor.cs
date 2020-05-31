@@ -33,21 +33,22 @@ namespace TBotCore.Config
         private Dictionary<string, StringDictionary> TextDict;
         public string this[string lang, string str]
         {
-            get 
+            get
             {
+                string result = str;
                 // language is not defined - return raw string key
                 if (!IsLanguageExist(lang))
                 {
                     BotManager.Core?.LogController?.LogWarning(new DebugMessage($"Language '{lang}' not fiound!"));
-                    return str;
+                    return result;
                 }
 
-                try { return TextDict[lang][str]; }
+                try { result = TextDict[lang][str]; }
                 catch (Exception e)
                 {
                     BotManager.Core?.LogController?.LogWarning(new DebugMessage("Text string error!", $"TextProcessor[{lang},{str}]", e));
-                    return str;
                 }
+                return result == null ? str : result;
             }
         }
 
