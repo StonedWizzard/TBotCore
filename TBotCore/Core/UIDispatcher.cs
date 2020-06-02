@@ -110,7 +110,6 @@ namespace TBotCore.Core
                         return;                    // and do nothing. no menu and etc...
                     }
                 }
-
                 await Task.Delay(BotManager.Core.Configs.BasicDelay);
 
                 // exception message sended succesfully, so display new one, above error
@@ -135,9 +134,6 @@ namespace TBotCore.Core
             // response is data so parse it and act accordingly
             else if(response.Type == BotResponse.ResponseType.Data)
             {
-                // how act????
-                // i know how, bitch)
-
                 // first transform raw data
                 CallbackData callback = CallbackDataParser.ParseData((string)response.Data);
 
@@ -177,13 +173,23 @@ namespace TBotCore.Core
         /// </summary>
         private IReplyMarkup GetMarkup(Dialog dialog, IUser user)
         {
-            // quiz dialogs - group by sortOrderVal
-            // pagination works by pageState from userState (or first by default)
+            // quiz dialogs - group by sortOrderVal!
+            List<List<InlineKeyboardButton>> result = new List<List<InlineKeyboardButton>>();
+            List<Dialog> dialogs = dialog.GetSubDialogs(ContextController.GetUserState(user).CurrentDialog);
+            foreach(Dialog dia in dialogs)
+            {
+                List<InlineKeyboardButton> row = new List<InlineKeyboardButton>();
+                InlineKeyboardButton btn = new InlineKeyboardButton();
+                btn.CallbackData = dia.Data;    // use data parser to generate full data?
+                btn.Text = dia.DisplayedName;
 
-
+                row.Add(btn);
+                result.Add(row);
+            }
             // anyway build support buttons
+            // in semi automat mode (preseted buttons like forward/ back stored in one line)
 
-            return null;
+            return new InlineKeyboardMarkup(result);
         }
 
         /// <summary>

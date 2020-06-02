@@ -124,7 +124,7 @@ namespace TBotCore.Core.Dialogs
         /// <summary>
         /// Returns sorted subdialogs
         /// </summary>
-        public virtual List<Dialog> GetSubDialogs()
+        public virtual List<Dialog> GetSubDialogs(Dialog currentDialog = null)
         {
             return Dialogs.OrderBy(x => x.DisplayPriority).ToList();
         }

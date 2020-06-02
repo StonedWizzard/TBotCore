@@ -21,15 +21,24 @@ namespace TBotCore.Core.Dialogs
         /// <summary>
         /// Return next dialog in serial list
         /// </summary>
-        public virtual Dialog Next(UserContextState state)
+        public virtual Dialog Next(Dialog currentDialog)
         {
             // if no any dialogs - return this instance
             if (Dialogs.Count == 0) return this;
             else
             {
-                int indx = Dialogs.IndexOf(state.CurrentDialog) + 1;
+                int indx = Dialogs.IndexOf(currentDialog) + 1;
                 return Dialogs.Count < indx ? Dialogs[indx] : this;
             }
+        }
+
+        public override List<Dialog> GetSubDialogs(Dialog currentDialog = null)
+        {
+            List<Dialog> result = new List<Dialog>();
+
+
+
+            return result;
         }
     }
 }
