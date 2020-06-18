@@ -32,19 +32,18 @@ namespace TBotCore.Core.Data
 
             // deserialize data string from button/dialog
             dynamic data = null;
-            if(String.IsNullOrEmpty(callbackSource.Data))
-                data = new { Content = "null", ContentType = CallbackData.ContentTypeEnum.Unknown, Data = "", };
+            var cntType = callbackSource is Dialog ? CallbackData.ContentTypeEnum.Dialog : CallbackData.ContentTypeEnum.Operation;
+
+            if (String.IsNullOrEmpty(callbackSource.Data))
+                data = new { Content = "null", ContentType = cntType, };
             else
                 data = JsonConvert.DeserializeObject(callbackSource.Data);
 
             // create CallbackData obj
             CallbackData callbackData = new CallbackData
             {
-                SenderId = callbackSource.Id,
-                SenderType = callbackSource.GetType().ToString(),
-                Content = data.Content,
-                ContentType = data.ContentType,
-                Data = data.Data,
+                Id = callbackSource.Id,
+                T = data.ContentType,
             };
 
             // ...and serialize to string, wich we rwturn
@@ -62,11 +61,7 @@ namespace TBotCore.Core.Data
                 throw new ArgumentNullException();
 
             CallbackData callbackData = JsonConvert.DeserializeObject<CallbackData>(rawData);
-
-            if (Type.GetType(callbackData.SenderType) is Button)
-                callbackData.SetSenderRef(DialogsProvider.GetButton(callbackData.SenderId));
-            else
-                callbackData.SetSenderRef(DialogsProvider.GetDialog(callbackData.SenderId));
+            callbackData.SetSenderRef(DialogsProvider.GetDialog(callbackData.Id));
 
             return callbackData;
         }

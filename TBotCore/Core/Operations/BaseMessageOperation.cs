@@ -26,7 +26,7 @@ namespace TBotCore.Core.Operations
             try
             {
                 result.ChatId = Convert.ToInt64(args["ChatId"]);
-                result.Content = args["Content"].ToString();
+                result.Content = args["Content"]?.ToString();
                 result.ReplyMarkup = (IReplyMarkup)args["ReplyMarkdown"];
                 return result;
             }

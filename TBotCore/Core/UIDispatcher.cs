@@ -12,6 +12,7 @@ using TBotCore.Core.Data;
 using TBotCore.Db;
 
 using Telegram.Bot.Types.ReplyMarkups;
+using System.Diagnostics;
 
 namespace TBotCore.Core
 {
@@ -32,6 +33,7 @@ namespace TBotCore.Core
             ContextController = uicc;
             Configs = BotManager.Core.Configs;
             Operations = BotManager.Core.Operations;
+            Dialogs = BotManager.Core.Dialogs;
             CallbackDataParser = BotManager.Core.Repository.CreateCallbackParser();
         }
 
@@ -58,29 +60,47 @@ namespace TBotCore.Core
             #region service method(s)
             async Task<bool> SendBack()
             {
-                Dialog dialog =     // owner dialog is like step aback
+                try
+                {
+                    Dialog dialog =     // owner dialog is like step aback
                     response.Dialog.Owner == null ? Dialogs.RootDialog : response.Dialog.Owner;
 
-                OpArgs["Content"] = ProcessContent(TranslateContent(dialog.Content, userPreferences), dialog, IsAddHeader);
-                OpArgs["ReplyMarkdown"] = GetMarkup(dialog, response.User);
-                OperationResult rMsg = await Operations["SendMessageOperation"].Execute(new OperationArgs(response.User, OpArgs));
-                msgId = (int)rMsg.Result;
+                    OpArgs["Content"] = ProcessContent(TranslateContent(dialog.Content, userPreferences), dialog, IsAddHeader);
+                    OpArgs["ReplyMarkdown"] = GetMarkup(dialog, response.User);
+                    OperationResult rMsg = await Operations["SendMessageOperation"].Execute(new OperationArgs(response.User, OpArgs));
+                    msgId = (int)rMsg.Result;
 
-                // set user context and return to upper dialog
-                ContextController.SetState(new UserContextState(response.User, dialog, msgId));
-                return true;
+                    // set user context and return to upper dialog
+                    ContextController.SetState(new UserContextState(response.User, dialog, msgId));
+                    return true;
+                }
+                catch(Exception exp)
+                {
+                    BotManager.Core?.LogController?
+                            .LogError(new DebugMessage("Can't show user error notification!", "Uidispatcher.SendBack()", exp));
+                    return false;
+                }
             }
             async Task<bool> SendToDialog()
             {
-                Dialog dialog = response.Dialog;
-                OpArgs["Content"] = ProcessContent(TranslateContent(dialog.Content, userPreferences), dialog, IsAddHeader);
-                OpArgs["ReplyMarkdown"] = GetMarkup(dialog, response.User);
-                OperationResult rMsg = await Operations["SendMessageOperation"].Execute(new OperationArgs(response.User, OpArgs));
-                msgId = (int)rMsg.Result;
+                try
+                {
+                    Dialog dialog = response.Dialog;
+                    OpArgs["Content"] = ProcessContent(TranslateContent(dialog.Content, userPreferences), dialog, IsAddHeader);
+                    OpArgs["ReplyMarkdown"] = GetMarkup(dialog, response.User);
+                    OperationResult rMsg = await Operations["SendMessageOperation"].Execute(new OperationArgs(response.User, OpArgs));
+                    msgId = (int)rMsg.Result;
 
-                // set user context and return to upper dialog
-                ContextController.SetState(new UserContextState(response.User, dialog, msgId));
-                return true;
+                    // set user context and return to upper dialog
+                    ContextController.SetState(new UserContextState(response.User, dialog, msgId));
+                    return true;
+                }
+                catch (Exception exp)
+                {
+                    BotManager.Core?.LogController?
+                            .LogError(new DebugMessage("Can't show user error notification!", "Uidispatcher.SendToDialog()", exp));
+                    return false;
+                }
             }
             #endregion
 
@@ -171,7 +191,7 @@ namespace TBotCore.Core
         /// <summary>
         /// Build markup depends on dialog
         /// </summary>
-        private IReplyMarkup GetMarkup(Dialog dialog, IUser user)
+        private InlineKeyboardMarkup GetMarkup(Dialog dialog, IUser user)
         {
             // quiz dialogs - group by sortOrderVal!
             List<List<InlineKeyboardButton>> result = new List<List<InlineKeyboardButton>>();
@@ -180,7 +200,8 @@ namespace TBotCore.Core
             {
                 List<InlineKeyboardButton> row = new List<InlineKeyboardButton>();
                 InlineKeyboardButton btn = new InlineKeyboardButton();
-                btn.CallbackData = dia.Data;    // use data parser to generate full data?
+                //btn.CallbackData = dia.Data;    // use data parser to generate full data?
+                btn.CallbackData = CallbackDataParser.GetData(dia);    // use data parser to generate full data?
                 btn.Text = dia.DisplayedName;
 
                 row.Add(btn);
@@ -205,26 +226,14 @@ namespace TBotCore.Core
         /// </summary>
         private string ProcessContent(string content, Dialog dialog, bool header)
         {
-            if (header) return content;
+            if (header == false)
+                return content;
             else
             {
                 if (dialog == null)
-                    return $"*>???\r\n{content}";
+                    return $"???\r\n\n{content}";
 
-                string result = content;
-                string path = "";
-                Dialog dia = dialog;
-
-                // build header
-                do
-                {
-                    path = $"{dia.DisplayedName}/{path}";
-                    dia = dia.Owner;
-                }
-                while (dia != null);
-                result = $"*>{path}\r\n{content}";
-
-                return result;
+                return $"{dialog.Path}\r\n\n{content}";
             }
         }
     }

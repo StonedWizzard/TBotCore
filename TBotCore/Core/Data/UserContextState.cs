@@ -93,10 +93,10 @@ namespace TBotCore.Core.Data
             return true;
         }
 
-        object rMutex = new object();
+        object rlsMutex = new object();
         public void RealiseContex()
         {
-            lock (rMutex)
+            lock (rlsMutex)
                 IsContextOccupied = false;
         }
 

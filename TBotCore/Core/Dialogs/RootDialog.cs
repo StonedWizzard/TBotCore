@@ -13,6 +13,6 @@ namespace TBotCore.Core.Dialogs
     /// </summary>
     public sealed class RootDialog : Dialog
     {
-        public RootDialog(Rd.Dialog dialog) : base(dialog, null) { }
+        public RootDialog(Rd.Dialog dialog) : base(dialog, null) { Path = RootPath; }
     }
 }

@@ -25,23 +25,12 @@ namespace TBotCore.Core.Data
         /// <summary>
         /// Id of button wich sended callback
         /// </summary>
-        public string SenderId { get; set; }
-        /// <summary>
-        /// Type of sender (service button or dialog)
-        /// </summary>
-        public string SenderType { get; set; }
-        /// <summary>
-        /// Name of dialog or operation to execute
-        /// </summary>
-        public string Content { get; set; }
+        public string Id { get; set; }
+
         /// <summary>
         /// Define what kind of content stored in Content field
         /// </summary>
-        public ContentTypeEnum ContentType { get; set; }
-        /// <summary>
-        /// Arguments or other data to support content execution
-        /// </summary>
-        public dynamic Data { get; set; }
+        public ContentTypeEnum T { get; set; }
         #endregion
 
         public enum ContentTypeEnum

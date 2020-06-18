@@ -29,6 +29,7 @@ namespace TBotCore.Core
         protected readonly UIDispatcher UiController;
         protected readonly DialogsProvider Dialogs;
         protected readonly ChatCommandsProvider Commands;
+        protected readonly DataParser DataParser;
 
         public readonly User BotInfo;
         public string BotName { get; private set; }
@@ -42,6 +43,7 @@ namespace TBotCore.Core
             ContextController = new UserInputContextController();
             UiController = BotManager.Core.Repository.CreateUiDispatcher(ContextController);
             UsersController = BotManager.Core.Repository.CreateUserController();
+            DataParser = new DataParser();
 
             // start telegram api initializing
             HttpClient httpClient = null;
@@ -124,9 +126,30 @@ namespace TBotCore.Core
             throw new NotImplementedException();
         }
 
-        protected void Api_OnCallbackQuery(object sender, Telegram.Bot.Args.CallbackQueryEventArgs e)
+        protected async void Api_OnCallbackQuery(object sender, Telegram.Bot.Args.CallbackQueryEventArgs e)
         {
-            throw new NotImplementedException();
+            // first awaits some time to prevent flooding
+            await Task.Delay(Configs.BasicDelay);
+
+            CallbackData data = DataParser.ParseData(e.CallbackQuery.Data);
+            IUser user = await UsersController.GetOrCreateUser(e.CallbackQuery.Message.From);
+            BotResponse response = new BotResponse(user);
+
+            // lock the context, so user cant spam thousand messages
+            // while some operations execute!
+            if (ContextController.GetUserState(user).OccupieContext() == false) return;
+
+            if(data.T == CallbackData.ContentTypeEnum.Dialog)
+            {
+                response = Dialogs.GetDialog(data.Id, user);
+            }
+            else if(data.T == CallbackData.ContentTypeEnum.Operation)
+            {
+                // support buttons use plain operations
+            }
+
+            UiController.HandleResponse(response, e.CallbackQuery.Message.Chat.Id);
+            ContextController.GetUserState(user).RealiseContex();
         }
 
         protected async void Api_OnMessage(object sender, Telegram.Bot.Args.MessageEventArgs e)
@@ -143,7 +166,7 @@ namespace TBotCore.Core
 
             // lock the context, so user cant spam thousand messages
             // while some operations execute!
-            if(!ContextController.GetUserState(user).OccupieContext()) return;
+            if(ContextController.GetUserState(user).OccupieContext() == false) return;
 
             // First of all checks if user registered in db or wherever else
             if (user.IsRegistered == false)
@@ -161,19 +184,22 @@ namespace TBotCore.Core
             // and call according methods for handling input
             if(!IsChat())             // <<--- Msg from user
             {
+                var userState = ContextController.GetUserState(user);
                 var handledInput = HandleUserInputMessage(msg, user);
                 if (handledInput.Item1 == false)
                 {
                     // send user message where says that his input can't parse
-                    response = 
-                        new BotExceptionResponse($"Can't parse user input! User: {user.UserId} Input: {msg.Text}\r\n", "txt_parseUserInputException", user);
+                    var dia = userState.CurrentDialog == null ? Dialogs.RootDialog : userState.CurrentDialog;
+                    response =
+                        new BotExceptionResponse($"Can't parse user input! User: {user.UserId} Input: {msg.Text}\r\n",
+                        "txt_parseUserInputException", user, dia);
                 }
                 else
                 {
                     // if user didn't start any conversation yet
                     // or start any but not await users response
-                    var userState = ContextController.GetUserState(user);
-                    if (userState == null)
+                    
+                    if (userState.CurrentDialog == null)
                     {
                         // conversation never starts in this session
                         // create context, display root dialog
@@ -182,6 +208,8 @@ namespace TBotCore.Core
                     else if(handledInput.Item2.Type == BotRequest.RequestType.Command)
                     {
                         // command detected - breack context, build new and execute it
+
+
                     }
                     else if (userState.CurrentState == UserContextState.ContextState.AwaitInput)
                     {
@@ -211,7 +239,7 @@ namespace TBotCore.Core
             ContextController.GetUserState(user).RealiseContex();
             // next message can be handled again
 
-            #region
+            #region microservice methods
             // some inline service methods
             bool IsChat() => msg.From.Id != msg.Chat.Id;
             #endregion
@@ -246,7 +274,8 @@ namespace TBotCore.Core
                 request = new BotRequest(txt, BotRequest.RequestType.TextMessage, user, msg);
             }
 
-            return (result, request);
+            //return (result, request);
+            return (true, request);
         }
 
         /// <summary>

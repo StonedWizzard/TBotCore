@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using TBotCore.Core.Dialogs;
 using TBotCore.Db;
 
 namespace TBotCore.Core.Data
@@ -24,7 +24,14 @@ namespace TBotCore.Core.Data
             base(data, ResponseType.Exception, user)
         {
             Message = msg;
-            ShowNotification = true;
+            ShowNotification = show;
+        }
+
+        public BotExceptionResponse(string msg, object data, IUser user, Dialog dialog, bool show = true)
+            : base(data, ResponseType.Exception, user, dialog)
+        {
+            Message = msg;
+            ShowNotification = show;
         }
     }
 }

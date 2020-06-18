@@ -18,6 +18,8 @@ namespace TBotCore.Core.Dialogs
     /// </summary>
     public class Dialog : IButton, IEditable<Dialog.EditableDialog>
     {
+        protected const string RootPath = "*>";
+
         /// <summary>
         /// Returns full dialog message.
         /// But in some cases can be applied pagination.
@@ -42,6 +44,7 @@ namespace TBotCore.Core.Dialogs
         /// List of references to support buttons defined in bot.
         /// </summary>
         public List<Button> SupportButtons { get; protected set; }
+        public string Path { get; internal set; }
 
         // Constructors
         public Dialog(string id)

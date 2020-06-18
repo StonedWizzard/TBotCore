@@ -121,6 +121,20 @@ namespace TBotCore.Core
                         dialog.GetEditable().Dialogs = DialogInitializer(dia, dialog);
                     }
 
+                    // build path
+                    string path = dialog.DisplayedName;
+                    Dialog diaOwner = dialog;
+
+                    // build header
+                    do
+                    {
+                        diaOwner = diaOwner.Owner;
+                        path = $"/{diaOwner.DisplayedName}/{path}";
+                    }
+                    while (diaOwner != null && (diaOwner is RootDialog || diaOwner is RegistrationDialog) == false);
+
+                    dialog.Path = path;
+
                     // add results
                     result.Add(dialog);
                     DialogsTable.Add(dialog.Id, dialog);
@@ -146,11 +160,11 @@ namespace TBotCore.Core
                 // dialog has missed by some reason...
                 // send user to root and make log
                 BotManager.Core?.LogController?.LogError(new DebugMessage($"Couldn't find dialog '{dialogId}'", "GetDialog()"));
-                return new BotResponse(RootDialog.Id, BotResponse.ResponseType.Dialog, user);
+                return new BotResponse(RootDialog.Id, BotResponse.ResponseType.Dialog, user, RootDialog);
             }
 
             if (dialog.ValidateUser(user.UserRole))
-                return new BotResponse(dialog.Id, BotResponse.ResponseType.Dialog, user);
+                return new BotResponse(dialog.Id, BotResponse.ResponseType.Dialog, user, dialog);
 
             // else return access exception
             return new BotResponse("txt_accessDenied", BotResponse.ResponseType.Exception, user);

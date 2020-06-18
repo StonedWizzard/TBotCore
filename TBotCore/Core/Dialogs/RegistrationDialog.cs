@@ -21,13 +21,14 @@ namespace TBotCore.Core.Dialogs
         {
             // set operation anyway
             Operation = BotManager.Core.Repository.CreteRegistrationOp();
+            Path = RootPath;
         }
 
         public override async Task<BotResponse> Execute(IUser user)
         {
             // get next dialog and call it 
             // if it last or no any dialogs - return container and execute it
-            Dialog next = Next(BotManager.Core.BotApiManager.ContextController.GetUserState(user));
+            Dialog next = Next(BotManager.Core.BotApiManager.ContextController.GetUserState(user).CurrentDialog);
             object data = null;
             if(next == this)
             {
