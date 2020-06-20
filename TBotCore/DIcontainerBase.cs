@@ -42,6 +42,10 @@ namespace TBotCore
         /// Create concrete instance of user access rights. required reference to user
         /// </summary>
         public abstract IUserRole CreateUserRole(IUser user);
+        /// <summary>
+        /// Create instance of user additional info object 
+        /// </summary>
+        public abstract IUserAddInfo CreateUserAddInfo(IUser user);
         #endregion
 
         #region Configs

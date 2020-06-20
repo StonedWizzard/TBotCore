@@ -81,7 +81,7 @@ namespace TBotCore.Config.RawData
         {
             return new Dialog()
             {
-                Id = "RegistrationDialog",
+                Id = "Registration",
                 Name = "txt_registrationDialogName",
                 Type = typeof(CD.RegistrationDialog).ToString(),
                 Message = new List<string> { "txt_registrationDia_content1" },

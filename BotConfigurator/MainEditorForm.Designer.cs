@@ -71,6 +71,8 @@
             this.label4 = new System.Windows.Forms.Label();
             this.CustomValuesList = new System.Windows.Forms.ListView();
             this.DialogsConfigTabPage = new System.Windows.Forms.TabPage();
+            this.RemoveDialogPageBtn = new System.Windows.Forms.Button();
+            this.AddDialogPageBtn = new System.Windows.Forms.Button();
             this.RemoveDialogButton = new System.Windows.Forms.Button();
             this.AddDialogButton = new System.Windows.Forms.Button();
             this.DialogDataBox = new System.Windows.Forms.TextBox();
@@ -115,8 +117,6 @@
             this.CommandsTabPage = new System.Windows.Forms.TabPage();
             this.OpenConfigDialog = new System.Windows.Forms.OpenFileDialog();
             this.SaveConfigDialog = new System.Windows.Forms.SaveFileDialog();
-            this.RemoveDialogPageBtn = new System.Windows.Forms.Button();
-            this.AddDialogPageBtn = new System.Windows.Forms.Button();
             this.MainMenuStrip.SuspendLayout();
             this.GeneralConfigsTabControll.SuspendLayout();
             this.BotConfigsTabPage.SuspendLayout();
@@ -613,6 +613,33 @@
             this.DialogsConfigTabPage.Text = "Dialogs";
             this.DialogsConfigTabPage.UseVisualStyleBackColor = true;
             // 
+            // RemoveDialogPageBtn
+            // 
+            this.RemoveDialogPageBtn.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.RemoveDialogPageBtn.Font = new System.Drawing.Font("Arial Narrow", 14.25F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.RemoveDialogPageBtn.ForeColor = System.Drawing.Color.Red;
+            this.RemoveDialogPageBtn.Location = new System.Drawing.Point(1108, 349);
+            this.RemoveDialogPageBtn.Name = "RemoveDialogPageBtn";
+            this.RemoveDialogPageBtn.Size = new System.Drawing.Size(41, 24);
+            this.RemoveDialogPageBtn.TabIndex = 24;
+            this.RemoveDialogPageBtn.Text = "-";
+            this.RemoveDialogPageBtn.UseVisualStyleBackColor = true;
+            this.RemoveDialogPageBtn.Click += new System.EventHandler(this.RemoveDialogPageBtn_Click);
+            // 
+            // AddDialogPageBtn
+            // 
+            this.AddDialogPageBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.AddDialogPageBtn.Font = new System.Drawing.Font("Consolas", 12F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.AddDialogPageBtn.ForeColor = System.Drawing.Color.DarkGreen;
+            this.AddDialogPageBtn.Location = new System.Drawing.Point(1061, 349);
+            this.AddDialogPageBtn.Name = "AddDialogPageBtn";
+            this.AddDialogPageBtn.Size = new System.Drawing.Size(41, 24);
+            this.AddDialogPageBtn.TabIndex = 23;
+            this.AddDialogPageBtn.Text = "+";
+            this.AddDialogPageBtn.UseVisualStyleBackColor = true;
+            this.AddDialogPageBtn.Click += new System.EventHandler(this.AddDialogPageBtn_Click);
+            // 
             // RemoveDialogButton
             // 
             this.RemoveDialogButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
@@ -643,11 +670,11 @@
             this.DialogDataBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.DialogDataBox.Font = new System.Drawing.Font("Segoe UI Symbol", 12F, System.Drawing.FontStyle.Bold);
-            this.DialogDataBox.Location = new System.Drawing.Point(682, 278);
-            this.DialogDataBox.MaxLength = 128;
+            this.DialogDataBox.Location = new System.Drawing.Point(824, 285);
+            this.DialogDataBox.MaxLength = 26;
             this.DialogDataBox.Multiline = true;
             this.DialogDataBox.Name = "DialogDataBox";
-            this.DialogDataBox.Size = new System.Drawing.Size(566, 60);
+            this.DialogDataBox.Size = new System.Drawing.Size(424, 27);
             this.DialogDataBox.TabIndex = 20;
             // 
             // label18
@@ -655,9 +682,9 @@
             this.label18.AutoSize = true;
             this.label18.Location = new System.Drawing.Point(333, 292);
             this.label18.Name = "label18";
-            this.label18.Size = new System.Drawing.Size(343, 32);
+            this.label18.Size = new System.Drawing.Size(485, 16);
             this.label18.TabIndex = 19;
-            this.label18.Text = "DialogData (JSON format string.\r\nShould contain - Content, ContentType and Data)";
+            this.label18.Text = "DialogData (additional data, argument or else. max length = 26 bytes)";
             // 
             // DialogOperationBox
             // 
@@ -819,7 +846,7 @@
             this.DialogIdBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.DialogIdBox.Location = new System.Drawing.Point(789, 13);
-            this.DialogIdBox.MaxLength = 128;
+            this.DialogIdBox.MaxLength = 16;
             this.DialogIdBox.Name = "DialogIdBox";
             this.DialogIdBox.Size = new System.Drawing.Size(459, 22);
             this.DialogIdBox.TabIndex = 4;
@@ -829,9 +856,9 @@
             this.label10.AutoSize = true;
             this.label10.Location = new System.Drawing.Point(333, 16);
             this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(223, 16);
+            this.label10.Size = new System.Drawing.Size(375, 16);
             this.label10.TabIndex = 3;
-            this.label10.Text = "DialogID (unique key of dialog)";
+            this.label10.Text = "DialogID (unique key of dialog. max length =16 bytes)";
             // 
             // DialogsBox
             // 
@@ -1102,33 +1129,6 @@
             // SaveConfigDialog
             // 
             this.SaveConfigDialog.Filter = "XML | *.xml";
-            // 
-            // RemoveDialogPageBtn
-            // 
-            this.RemoveDialogPageBtn.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.RemoveDialogPageBtn.Font = new System.Drawing.Font("Arial Narrow", 14.25F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.RemoveDialogPageBtn.ForeColor = System.Drawing.Color.Red;
-            this.RemoveDialogPageBtn.Location = new System.Drawing.Point(1108, 349);
-            this.RemoveDialogPageBtn.Name = "RemoveDialogPageBtn";
-            this.RemoveDialogPageBtn.Size = new System.Drawing.Size(41, 24);
-            this.RemoveDialogPageBtn.TabIndex = 24;
-            this.RemoveDialogPageBtn.Text = "-";
-            this.RemoveDialogPageBtn.UseVisualStyleBackColor = true;
-            this.RemoveDialogPageBtn.Click += new System.EventHandler(this.RemoveDialogPageBtn_Click);
-            // 
-            // AddDialogPageBtn
-            // 
-            this.AddDialogPageBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.AddDialogPageBtn.Font = new System.Drawing.Font("Consolas", 12F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.AddDialogPageBtn.ForeColor = System.Drawing.Color.DarkGreen;
-            this.AddDialogPageBtn.Location = new System.Drawing.Point(1061, 349);
-            this.AddDialogPageBtn.Name = "AddDialogPageBtn";
-            this.AddDialogPageBtn.Size = new System.Drawing.Size(41, 24);
-            this.AddDialogPageBtn.TabIndex = 23;
-            this.AddDialogPageBtn.Text = "+";
-            this.AddDialogPageBtn.UseVisualStyleBackColor = true;
-            this.AddDialogPageBtn.Click += new System.EventHandler(this.AddDialogPageBtn_Click);
             // 
             // MainEditorForm
             // 

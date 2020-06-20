@@ -80,8 +80,6 @@ namespace TBotCore.Db
 
             result = BotManager.Core.Repository.CreateUser();
             result.UserId = user.Id;
-            result.LastName = user.LastName;
-            result.FirstName = user.FirstName;
             result.UserName = user.Username;
             result.IsRegistered = isRegistered;
 

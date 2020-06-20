@@ -86,24 +86,17 @@ namespace TBotCore
             ConfigSerializer configWorker = Repository.CreateConfigSerializer();
             var confResult = configWorker.ReadConfigs();
 
-            // load fails. get default configs
-            // and provide instant saving
-            if (!confResult.Item1)
-            {
-                LogController.LogWarning(new DebugMessage("Loading configs fails! Used default settings!"));
-                Configs = new BotConfigs(Config.RawData.Configs.GetDefaultConfigs());
-                Dialogs = new DialogsProvider(new Config.RawData.DialogsContainer());
-
-                configWorker.SaveConfig(Configs, Dialogs);
-            }
             // Ok!
-            else
+            if (confResult.Item1)
             {
                 Configs = confResult.Item2;
                 Dialogs = confResult.Item3;
+                LogController.LogSucces(new DebugMessage("Ok!"));
+                LogController.LogSucces(new DebugMessage("BotManager is initialized!"));
             }
-            LogController.LogSucces(new DebugMessage("Ok!"));
-            LogController.LogSucces(new DebugMessage("BotManager is initialized!"));
+            // Fail!
+            else
+                LogController.LogWarning(new DebugMessage("Loading configs fails! Used default settings!"));
         }
 
         /// <summary>

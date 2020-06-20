@@ -22,15 +22,12 @@ namespace SampleTgBot.DB
         [Index(IsUnique = true)]
         public int UserId { get; set; }
         public string UserName { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Phone { get; set; }
-        public string Mail { get; set; }
         public string Login { get; set; }
         public string Password { get; set; }
 
         public IUserRole UserRole { get; set; }
         public IUserPreferences UserPreferences { get; set; }
+        public IUserAddInfo UserInfo { get; set; }
 
         public DateTime LastVisit { get; set; }
         [Required]
@@ -40,15 +37,11 @@ namespace SampleTgBot.DB
 
         public void Update(IUser user)
         {
-            this.FirstName = user.FirstName;
             this.IsRegistered = user.IsRegistered;
-            this.LastName = user.LastName;
             this.LastVisit = user.LastVisit;
             this.Login = user.Login;
-            this.Mail = user.Mail;
             this.MessagesSend = user.MessagesSend;
             this.Password = user.Password;
-            this.Phone = user.Phone;
             this.UserName = user.UserName;
             this.UserPreferences = user.UserPreferences;
             this.UserRole = user.UserRole;
@@ -60,8 +53,6 @@ namespace SampleTgBot.DB
             User result = new User();
 
             result.UserId = user.UserId;
-            result.LastName = user.LastName;
-            result.FirstName = user.FirstName;
             result.UserName = user.UserName;
             result.IsRegistered = false;
 

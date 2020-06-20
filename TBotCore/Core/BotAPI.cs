@@ -76,10 +76,11 @@ namespace TBotCore.Core
 
                 BotInfo = Api.GetMeAsync().Result;
                 BotName = BotInfo.Username;
+                ContextController.SetIgnored(BotInfo.Id);
 
                 sw.Stop();
                 BotManager.Core?.LogController?
-                    .LogSucces(new DebugMessage($"Conection is cuccess (response time - {sw.Elapsed})\r\n--> Bot Api initialized and ready!"));
+                    .LogSucces(new DebugMessage($"Conection is cuccess (response time = {sw.Elapsed})\r\n--> Bot Api initialized and ready!"));
             }
             catch(Exception e)
             {
@@ -132,12 +133,12 @@ namespace TBotCore.Core
             await Task.Delay(Configs.BasicDelay);
 
             CallbackData data = DataParser.ParseData(e.CallbackQuery.Data);
-            IUser user = await UsersController.GetOrCreateUser(e.CallbackQuery.Message.From);
+            IUser user = await UsersController.GetOrCreateUser(e.CallbackQuery.From);
             BotResponse response = new BotResponse(user);
 
             // lock the context, so user cant spam thousand messages
             // while some operations execute!
-            if (ContextController.GetUserState(user).OccupieContext() == false) return;
+            if (ContextController.GetUserState(user)?.OccupieContext() == false) return;
 
             if(data.T == CallbackData.ContentTypeEnum.Dialog)
             {
@@ -166,7 +167,7 @@ namespace TBotCore.Core
 
             // lock the context, so user cant spam thousand messages
             // while some operations execute!
-            if(ContextController.GetUserState(user).OccupieContext() == false) return;
+            if(ContextController.GetUserState(user)?.OccupieContext() == false) return;
 
             // First of all checks if user registered in db or wherever else
             if (user.IsRegistered == false)
@@ -215,7 +216,7 @@ namespace TBotCore.Core
                     {
                         // bot awaits user response...
                         // so here we going to collect data
-                        response = ContextController.AddRequest(handledInput.Item2);
+                        ///response = ContextController.AddRequest(handledInput.Item2);
                     }
                     else
                     {

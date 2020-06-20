@@ -12,6 +12,7 @@ namespace TBotCore.Core.Data
 {
     /// <summary>
     /// Represent a formatted callback data of any button
+    /// Attention - maximum serialized data size is 64 byte
     /// </summary>
     public class CallbackData
     {
@@ -31,6 +32,11 @@ namespace TBotCore.Core.Data
         /// Define what kind of content stored in Content field
         /// </summary>
         public ContentTypeEnum T { get; set; }
+
+        /// <summary>
+        /// Define additional data, args and etc.
+        /// </summary>
+        public string D { get; set; }
         #endregion
 
         public enum ContentTypeEnum

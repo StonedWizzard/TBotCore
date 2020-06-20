@@ -36,9 +36,14 @@ namespace TBotCore.Core.Operations
             if (response.ResultType == OperationResult.OperationResultType.Failed)
                 return response;
 
-
             try
             {
+                // read collected arguments from dialog series
+                // create user add info, fill preferences and etc.
+                IUserAddInfo userAddInfo = BotManager.Core.Repository.CreateUserAddInfo(args.User);
+                userAddInfo.SetFields(args.Args);
+                args.User.UserInfo = userAddInfo;
+
                 bool result = await BotManager.Core.BotApiManager.UsersController.CompleateRegistration(args.User);
                 if (result)
                     return new OperationResult(args.User, OperationResult.OperationResultType.Success);

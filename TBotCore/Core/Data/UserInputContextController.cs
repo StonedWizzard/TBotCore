@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,11 +19,13 @@ namespace TBotCore.Core.Data
         /// Virtual (means only in ram, not serialized or saved anyway) dictionary
         /// where key is userId and value - context with response cache
         /// </summary>
-        Dictionary<long, UserContextState> ContextCollection;
+        private Dictionary<long, UserContextState> ContextCollection;
+        private HashSet<long> IgnoredContexts;
 
         public UserInputContextController()
         {
             ContextCollection = new Dictionary<long, UserContextState>();
+            IgnoredContexts = new HashSet<long>();
         }
 
         /// <summary>
@@ -30,9 +33,13 @@ namespace TBotCore.Core.Data
         /// </summary>
         public UserContextState GetUserState(IUser user)
         {
+            if (IgnoredContexts.Contains(user.UserId))
+                return null;
+
             if (!ContextCollection.ContainsKey(user.UserId))
             {
                 UserContextState state = new UserContextState(user);
+                SetState(state);
                 return state;
             }
             else return ContextCollection[user.UserId];
@@ -42,11 +49,11 @@ namespace TBotCore.Core.Data
         public void SetState(UserContextState state)
         {
             // first initialize context if not initialized
-            if (!ContextCollection.ContainsKey(state.User.Id))
-                ContextCollection.Add(state.User.Id, state);
+            if (!ContextCollection.ContainsKey(state.User.UserId))
+                ContextCollection.Add(state.User.UserId, state);
 
             else
-                ContextCollection[state.User.Id] = state;
+                ContextCollection[state.User.UserId] = state;
         }
 
         /// <summary>
@@ -54,15 +61,28 @@ namespace TBotCore.Core.Data
         /// </summary>
         public void ClearState(IUser user)
         {
-            if (ContextCollection.ContainsKey(user.Id))
-                ContextCollection[user.Id] = new UserContextState(user);
+            if (ContextCollection.ContainsKey(user.UserId))
+                ContextCollection[user.UserId] = new UserContextState(user);
         }
 
 
         /// ??????????????????????????????????????????????????????????????????????????
-        public BotResponse AddRequest(BotRequest request)
+        public BotResponse AddRequest(IUser user, BotRequest request)
         {
             return null;
+        }
+
+        /// <summary>
+        /// Set user context to ignored. It means controller not return user state
+        /// and next handling of requests is imposible.
+        /// Prevent (mostly) react bot to it's own messages, but also can be used to block users.
+        /// </summary>
+        public void SetIgnored(long user, bool ignored = true)
+        {
+            if(ignored)
+                IgnoredContexts.Add(user);
+            else
+                IgnoredContexts.Remove(user);
         }
     }
 }

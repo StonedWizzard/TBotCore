@@ -19,6 +19,11 @@ namespace TBotCore.Editor
             throw new NotImplementedException();
         }
 
+        public override IUserAddInfo CreateUserAddInfo(IUser user)
+        {
+            throw new NotImplementedException();
+        }
+
         public override BaseUserController CreateUserController()
         {
             throw new NotImplementedException();

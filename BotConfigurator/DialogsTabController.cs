@@ -31,6 +31,8 @@ namespace BotConfigurator
             // select new one
             try
             {
+                if (Owner.Form.DialogsBox.SelectedNode == null) return;
+
                 if(Owner.Form.DialogsBox.SelectedNode.Tag is PaginatedDialog)
                     SelectedItem = (Owner.Form.DialogsBox.SelectedNode.Tag as PaginatedDialog).GetEditable();
                 else

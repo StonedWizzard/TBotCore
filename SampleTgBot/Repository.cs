@@ -39,5 +39,13 @@ namespace SampleTgBot
         {
             return new UserRole();
         }
+
+        public override IUserAddInfo CreateUserAddInfo(IUser user)
+        {
+            UserAddInfo result = new UserAddInfo();
+            result.UserId = user.UserId;
+
+            return result;
+        }
     }
 }

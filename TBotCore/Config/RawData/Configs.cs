@@ -128,7 +128,15 @@ namespace TBotCore.Config.RawData
                 Name = "Paginated buttons per response",
                 Description = "Define how many buttons should display in message"
             });
-
+            result.CustomValues.Array.Add(new ConfigValue()
+            {
+                Key = "ReplaceDialogs",
+                Value = true,
+                ValueFlag = ConfigValue.ValueFlags.Default,
+                ValueType = typeof(bool).ToString(),
+                Name = "Replace inline dialogs",
+                Description = "Enable dialogs replacement during navigation."
+            });
             return result;
         }
     }

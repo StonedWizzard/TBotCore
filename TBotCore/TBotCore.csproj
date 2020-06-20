@@ -101,11 +101,13 @@
     <Compile Include="Core\Operations\OperationFiller.cs" />
     <Compile Include="Core\Operations\OperationResult.cs" />
     <Compile Include="Core\Operations\RegistrationOperation.cs" />
+    <Compile Include="Core\Operations\ReplaceMessageOperation.cs" />
     <Compile Include="Core\Operations\SendMessageOperation.cs" />
     <Compile Include="Core\UIDispatcher.cs" />
     <Compile Include="Db\IChat.cs" />
     <Compile Include="Db\IUser.cs" />
     <Compile Include="Db\BaseUserController.cs" />
+    <Compile Include="Db\IUserAddInfo.cs" />
     <Compile Include="Db\IUserLogMessage.cs" />
     <Compile Include="Db\IUserPreferences.cs" />
     <Compile Include="Db\IUserRole.cs" />
@@ -127,6 +129,7 @@
     <Compile Include="Editor\IEditeble.cs" />
     <Compile Include="Editor\IEntityEditor.cs" />
     <Compile Include="IBotCore.cs" />
+    <Compile Include="Infrastructure\StringExtensionsClass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />

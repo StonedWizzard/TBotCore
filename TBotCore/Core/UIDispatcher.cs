@@ -54,8 +54,8 @@ namespace TBotCore.Core
             OpArgs.Add("ReplyMarkdown", null);
 
             bool IsAddHeader = Configs["ShowDialogPath"].GetValue<bool>();
+            bool replaceMsg = Configs["ReplaceDialogs"].GetValue<bool>();
             int msgId = -1;
-            bool replaceMsg = true;
 
             #region service method(s)
             async Task<bool> SendBack()
@@ -88,8 +88,18 @@ namespace TBotCore.Core
                     Dialog dialog = response.Dialog;
                     OpArgs["Content"] = ProcessContent(TranslateContent(dialog.Content, userPreferences), dialog, IsAddHeader);
                     OpArgs["ReplyMarkdown"] = GetMarkup(dialog, response.User);
-                    OperationResult rMsg = await Operations["SendMessageOperation"].Execute(new OperationArgs(response.User, OpArgs));
-                    msgId = (int)rMsg.Result;
+                    OpArgs["MsgId"] = msgId = userContext.LastMsgId;
+
+                    if (replaceMsg && msgId > 0)
+                    {
+                        OperationResult rMsg = await Operations["ReplaceMessageOperation"].Execute(new OperationArgs(response.User, OpArgs));
+                        msgId = (int)rMsg.Result;
+                    }
+                    else
+                    {
+                        OperationResult rMsg = await Operations["SendMessageOperation"].Execute(new OperationArgs(response.User, OpArgs));
+                        msgId = (int)rMsg.Result;
+                    }
 
                     // set user context and return to upper dialog
                     ContextController.SetState(new UserContextState(response.User, dialog, msgId));
@@ -146,9 +156,7 @@ namespace TBotCore.Core
             // and, of course change state
             if (response.Type == BotResponse.ResponseType.Dialog)
             {
-                if (response.Dialog == null)
-                    await SendBack();
-                else
+                if (response.Dialog != null)
                     await SendToDialog();
             }
             // response is data so parse it and act accordingly

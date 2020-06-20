@@ -28,6 +28,7 @@ namespace TBotCore.Core.Operations
                 result.ChatId = Convert.ToInt64(args["ChatId"]);
                 result.Content = args["Content"]?.ToString();
                 result.ReplyMarkup = (IReplyMarkup)args["ReplyMarkdown"];
+                result.MsgId = args["MsgId"] == null ? -1 : Convert.ToInt32(args["MsgId"]);
                 return result;
             }
             catch { return null; }
@@ -35,6 +36,7 @@ namespace TBotCore.Core.Operations
         
         public struct MessageParams
         {
+            public int MsgId;
             public long ChatId;
             public string Content;
             public IReplyMarkup ReplyMarkup;

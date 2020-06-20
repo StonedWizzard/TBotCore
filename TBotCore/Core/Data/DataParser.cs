@@ -32,23 +32,26 @@ namespace TBotCore.Core.Data
 
             // deserialize data string from button/dialog
             dynamic data = null;
-            var cntType = callbackSource is Dialog ? CallbackData.ContentTypeEnum.Dialog : CallbackData.ContentTypeEnum.Operation;
+            var cntType = callbackSource is Dialog ? 
+                CallbackData.ContentTypeEnum.Dialog : CallbackData.ContentTypeEnum.Operation;
 
             if (String.IsNullOrEmpty(callbackSource.Data))
-                data = new { Content = "null", ContentType = cntType, };
+                data = new { Content = "null", ContentType = cntType };
             else
                 data = JsonConvert.DeserializeObject(callbackSource.Data);
 
             // create CallbackData obj
             CallbackData callbackData = new CallbackData
             {
-                Id = callbackSource.Id,
-                T = data.ContentType,
+                Id = callbackSource.Id,     //16bytes
+                T = data.ContentType,       //1byte
+                D = data.Content,           //26bytes
+                // and 15bytes reserved for JSON formatting
+                // total 64 - it's maximum callback data size
             };
 
             // ...and serialize to string, wich we rwturn
             string result = JsonConvert.SerializeObject(callbackData);
-
             return result;
         }
 

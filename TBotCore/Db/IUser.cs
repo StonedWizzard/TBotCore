@@ -17,14 +17,10 @@ namespace TBotCore.Db
         int UserId { get; set; }
         string UserName { get; set; }
 
-        string FirstName { get; set; }
-        string LastName { get; set; }
-
-        string Phone { get; set; }
-        string Mail { get; set; }
-
         string Login { get; set; }
         string Password { get; set; }
+
+        IUserAddInfo UserInfo { get; set; }
         IUserRole UserRole { get; set; }
         IUserPreferences UserPreferences { get; set; }
 

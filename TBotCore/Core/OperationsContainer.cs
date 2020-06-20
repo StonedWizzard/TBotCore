@@ -40,6 +40,8 @@ namespace TBotCore.Core
         public virtual void InitializeOperations()
         {
             Operations.Add(nameof(SendMessageOperation), new SendMessageOperation(this));
+            Operations.Add(nameof(ReplaceMessageOperation), new ReplaceMessageOperation(this));
+            Operations.Add(nameof(RegistrationOperation), new RegistrationOperation(this));
         }
 
         public BaseOperation this[string indx]

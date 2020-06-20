@@ -80,6 +80,7 @@
     <Compile Include="DB\DbContext.cs" />
     <Compile Include="DB\DbInitializer.cs" />
     <Compile Include="DB\User.cs" />
+    <Compile Include="DB\UserAddInfo.cs" />
     <Compile Include="DB\UserDataController.cs" />
     <Compile Include="DB\UserLogEntry.cs" />
     <Compile Include="DB\UserPreferences.cs" />

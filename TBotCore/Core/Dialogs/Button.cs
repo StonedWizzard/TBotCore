@@ -45,6 +45,14 @@ namespace TBotCore.Core.Dialogs
 
         public Button(Rd.Button button)
         {
+            if (String.IsNullOrEmpty(button.Id))
+                throw new ArgumentNullException("Id");
+            if (button.Id.IsBloated(16))
+                throw new Exception($"Id value lenght cant exceed size of 16 chars!\r\nDialog/Button Id = '{button.Id}'");
+
+            if (button.Data.IsBloated(26))
+                throw new Exception($"Data lenght cant exceed size of 26 chars!\r\nDialog/Button Id = '{button.Id}'");
+
             Id = button.Id;
             DisplayedName = button.Name;
             Data = button.Data;
