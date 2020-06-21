@@ -64,7 +64,7 @@ namespace TBotCore.Core.Data
                 throw new ArgumentNullException();
 
             CallbackData callbackData = JsonConvert.DeserializeObject<CallbackData>(rawData);
-            callbackData.SetSenderRef(DialogsProvider.GetDialog(callbackData.Id));
+            callbackData.SetSenderRef(DialogsProvider.GetEntity(callbackData.Id));
 
             return callbackData;
         }

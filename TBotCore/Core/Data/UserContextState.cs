@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TBotCore.Db;
 using TBotCore.Core.Dialogs;
+using TBotCore.Debug;
 
 namespace TBotCore.Core.Data
 {
@@ -90,7 +91,7 @@ namespace TBotCore.Core.Data
             if (IsContextOccupied) return false;
 
             lock (occMutex) { IsContextOccupied = true; }
-            return true;
+            return IsContextOccupied == true;
         }
 
         object rlsMutex = new object();

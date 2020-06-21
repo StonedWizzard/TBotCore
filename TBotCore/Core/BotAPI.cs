@@ -149,7 +149,7 @@ namespace TBotCore.Core
                 // support buttons use plain operations
             }
 
-            UiController.HandleResponse(response, e.CallbackQuery.Message.Chat.Id);
+            await UiController.HandleResponse(response, e.CallbackQuery.Message.Chat.Id);
             ContextController.GetUserState(user).RealiseContex();
         }
 
@@ -169,12 +169,13 @@ namespace TBotCore.Core
             // while some operations execute!
             if(ContextController.GetUserState(user)?.OccupieContext() == false) return;
 
+
             // First of all checks if user registered in db or wherever else
             if (user.IsRegistered == false)
             {
                 // all required register actions done in method...
                 response = await DoRegistration(user);
-                UiController.HandleResponse(response, msg.Chat.Id);
+                await UiController.HandleResponse(response, msg.Chat.Id);
                 ContextController.GetUserState(user).RealiseContex();
                 return;
                 // ...just await and exit from here
@@ -210,6 +211,10 @@ namespace TBotCore.Core
                     {
                         // command detected - breack context, build new and execute it
 
+                        // something like stub
+                        // change later!!!!!!!!!!!!!!!!!!!!!!
+                        // nothing to do, just send current user dialog
+                        response = new BotResponse(null, BotResponse.ResponseType.Dialog, user, userState.CurrentDialog);
 
                     }
                     else if (userState.CurrentState == UserContextState.ContextState.AwaitInput)
@@ -236,7 +241,7 @@ namespace TBotCore.Core
 
             // display whatewer results come from response
             // user state updates there
-            UiController.HandleResponse(response, msg.Chat.Id);
+            await UiController.HandleResponse(response, msg.Chat.Id);
             ContextController.GetUserState(user).RealiseContex();
             // next message can be handled again
 

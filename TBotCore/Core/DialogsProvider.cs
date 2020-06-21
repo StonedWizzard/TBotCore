@@ -193,6 +193,17 @@ namespace TBotCore.Core
         }
 
         /// <summary>
+        /// Return Dialog or Button if they exist
+        /// othervise return null
+        /// </summary>
+        public IButton GetEntity(string Id)
+        {
+            IButton result = GetDialog(Id);
+            result = result == null ? GetButton(Id) : result;
+            return result;
+        }
+
+        /// <summary>
         /// Return list of all support buttons in bot
         /// </summary>
         public List<Button> GetButtons()
@@ -343,7 +354,7 @@ namespace TBotCore.Core
                     Id = newBtnId,
                     Name = newBtnId,
                     DisplayPriority = 0,
-                    Data = @"{ ContentType: """", Content: """", Data: {}}",
+                    Data = "",
                     Type = typeof(Button).ToString()
                 };
 

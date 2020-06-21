@@ -41,7 +41,7 @@ namespace TBotCore.Core
         /// Reads response and build UI for user
         /// consider user language, preferences and context
         /// </summary>
-        public async void HandleResponse(BotResponse response, long chatId)
+        public async Task HandleResponse(BotResponse response, long chatId)
         {
             // get user preferences first
             IUserPreferences userPreferences = response.User.UserPreferences;
@@ -93,12 +93,14 @@ namespace TBotCore.Core
                     if (replaceMsg && msgId > 0)
                     {
                         OperationResult rMsg = await Operations["ReplaceMessageOperation"].Execute(new OperationArgs(response.User, OpArgs));
-                        msgId = (int)rMsg.Result;
+                        int? msgVal = rMsg.Result as int?;
+                        msgId = msgVal == null ? msgId : msgVal.Value;
                     }
                     else
                     {
                         OperationResult rMsg = await Operations["SendMessageOperation"].Execute(new OperationArgs(response.User, OpArgs));
-                        msgId = (int)rMsg.Result;
+                        int? msgVal = rMsg.Result as int?;
+                        msgId = msgVal == null ? msgId : msgVal.Value;
                     }
 
                     // set user context and return to upper dialog
@@ -208,15 +210,29 @@ namespace TBotCore.Core
             {
                 List<InlineKeyboardButton> row = new List<InlineKeyboardButton>();
                 InlineKeyboardButton btn = new InlineKeyboardButton();
-                //btn.CallbackData = dia.Data;    // use data parser to generate full data?
-                btn.CallbackData = CallbackDataParser.GetData(dia);    // use data parser to generate full data?
+                btn.CallbackData = CallbackDataParser.GetData(dia);
                 btn.Text = dia.DisplayedName;
 
                 row.Add(btn);
                 result.Add(row);
             }
-            // anyway build support buttons
-            // in semi automat mode (preseted buttons like forward/ back stored in one line)
+
+            // build support buttons
+            // store them all in the end of list and group by 'position value'
+            var btnsSet = dialog.SupportButtons.GroupBy(x => x.DisplayPriority);
+            foreach(var btns in btnsSet)
+            {
+                List<InlineKeyboardButton> row = new List<InlineKeyboardButton>();
+                foreach(Button b in btns)
+                {
+                    InlineKeyboardButton btn = new InlineKeyboardButton();
+                    btn.CallbackData = CallbackDataParser.GetData(b);
+                    btn.Text = b.DisplayedName;
+
+                    row.Add(btn);
+                }
+                result.Add(row);
+            }
 
             return new InlineKeyboardMarkup(result);
         }
@@ -226,7 +242,21 @@ namespace TBotCore.Core
         /// </summary>
         private string TranslateContent(string content, IUserPreferences prefs)
         {
-            return Configs.TextStrings[prefs.Language, content];
+            try
+            {
+                return Configs.TextStrings[prefs.Language, content];
+            }
+            catch (NullReferenceException) 
+            {
+                BotManager.Core?.LogController?.LogWarning(new DebugMessage($"String '{content}' (Lng={prefs.Language}) not found!", "UiDispatcher.TranslateContent()", $"UserId: {prefs.UserId}"));
+            }
+            catch (Exception exp) 
+            {
+                BotManager.Core?.LogController?.LogError(new DebugMessage($"{exp.Message}", "UiDispatcher.HandleResponse()", $"UserId: {prefs.UserId}"));
+            }
+
+            // if something happen - return raw string
+            return content;
         }
 
         /// <summary>
