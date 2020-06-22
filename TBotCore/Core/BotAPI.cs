@@ -13,6 +13,7 @@ using TBotCore.Debug;
 using TBotCore.Config;
 using TBotCore.Core.Data;
 using TBotCore.Db;
+using TBotCore.Core.Dialogs;
 
 namespace TBotCore.Core
 {
@@ -146,7 +147,14 @@ namespace TBotCore.Core
             }
             else if(data.T == CallbackData.ContentTypeEnum.Operation)
             {
-                // support buttons use plain operations
+                Dialog currentDia = ContextController.GetUserState(user).CurrentDialog;
+                var result = await BotManager.Core.Operations[data.D]
+                    .Execute(new Operations.OperationArgs(user, new Dictionary<string, object> { { "CurrentDialog", currentDia } }));
+                response = result.Result as BotResponse;
+
+                // something wrong, go to root
+                if (response == null)
+                    response = new BotResponse(null, BotResponse.ResponseType.Dialog, user, Dialogs.RootDialog);
             }
 
             await UiController.HandleResponse(response, e.CallbackQuery.Message.Chat.Id);

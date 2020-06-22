@@ -42,6 +42,8 @@ namespace TBotCore.Core
             Operations.Add(nameof(SendMessageOperation), new SendMessageOperation(this));
             Operations.Add(nameof(ReplaceMessageOperation), new ReplaceMessageOperation(this));
             Operations.Add(nameof(RegistrationOperation), new RegistrationOperation(this));
+            Operations.Add(nameof(SendBackOperation), new SendBackOperation(this));
+            Operations.Add(nameof(SendToRootOperation), new SendToRootOperation(this));
         }
 
         public BaseOperation this[string indx]

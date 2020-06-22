@@ -102,7 +102,9 @@
     <Compile Include="Core\Operations\OperationResult.cs" />
     <Compile Include="Core\Operations\RegistrationOperation.cs" />
     <Compile Include="Core\Operations\ReplaceMessageOperation.cs" />
+    <Compile Include="Core\Operations\SendBackOperation.cs" />
     <Compile Include="Core\Operations\SendMessageOperation.cs" />
+    <Compile Include="Core\Operations\SendToRootOperation.cs" />
     <Compile Include="Core\UIDispatcher.cs" />
     <Compile Include="Db\IChat.cs" />
     <Compile Include="Db\IUser.cs" />

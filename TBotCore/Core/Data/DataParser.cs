@@ -31,21 +31,21 @@ namespace TBotCore.Core.Data
                 throw new ArgumentNullException("callbackSource");
 
             // deserialize data string from button/dialog
-            dynamic data = null;
+            //dynamic data = null;
             var cntType = callbackSource is Dialog ? 
                 CallbackData.ContentTypeEnum.Dialog : CallbackData.ContentTypeEnum.Operation;
-
+            /*
             if (String.IsNullOrEmpty(callbackSource.Data))
                 data = new { Content = "null", ContentType = cntType };
             else
                 data = JsonConvert.DeserializeObject(callbackSource.Data);
-
+            */
             // create CallbackData obj
             CallbackData callbackData = new CallbackData
             {
                 Id = callbackSource.Id,     //16bytes
-                T = data.ContentType,       //1byte
-                D = data.Content,           //26bytes
+                T = cntType,                //1byte
+                D = callbackSource.Data,    //26bytes
                 // and 15bytes reserved for JSON formatting
                 // total 64 - it's maximum callback data size
             };
