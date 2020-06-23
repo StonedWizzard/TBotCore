@@ -33,7 +33,7 @@ namespace TBotCore.Core.Data
             // deserialize data string from button/dialog
             //dynamic data = null;
             var cntType = callbackSource is Dialog ? 
-                CallbackData.ContentTypeEnum.Dialog : CallbackData.ContentTypeEnum.Operation;
+                CallbackData.ContentTypeEnum.Dialog : CallbackData.ContentTypeEnum.Button;
             /*
             if (String.IsNullOrEmpty(callbackSource.Data))
                 data = new { Content = "null", ContentType = cntType };

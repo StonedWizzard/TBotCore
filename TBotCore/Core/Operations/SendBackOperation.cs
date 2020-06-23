@@ -30,13 +30,13 @@ namespace TBotCore.Core.Operations
             if(!args.Args.ContainsKey("CurrentDialog"))
                 return new OperationResult(null, OperationResult.OperationResultType.Failed, "CurrentDialog arg is missed!");
 
-            // return empty response to next handler
-            await Task.Delay(BotManager.Core.Configs.BasicDelay);
             try
             {
                 Dialog dia = args.Args["CurrentDialog"] as Dialog;
-                var result = await dia.Owner.Execute(args.User);
+                if (dia == null) 
+                    return new OperationResult(await BotManager.Core.Dialogs.RootDialog.Execute(args.User), OperationResult.OperationResultType.Success);
 
+                var result = await dia.Owner.Execute(args.User);
                 return new OperationResult(result, OperationResult.OperationResultType.Success);
             }
             catch(Exception e)

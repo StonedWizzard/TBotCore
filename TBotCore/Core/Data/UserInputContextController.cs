@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TBotCore.Core.Dialogs;
 using TBotCore.Db;
 using TBotCore.Debug;
 
@@ -66,10 +67,20 @@ namespace TBotCore.Core.Data
         }
 
 
-        /// ??????????????????????????????????????????????????????????????????????????
         public BotResponse AddRequest(IUser user, BotRequest request)
         {
-            return null;
+            return AddRequest(GetUserState(user), request);
+        }
+        public BotResponse AddRequest(UserContextState state, BotRequest request)
+        {
+            state.AddResponse(state.CurrentDialog.Id, request);
+            var serialDia = state.CurrentDialog.Owner as SerialDialog;
+            if (serialDia != null)
+            {
+                return new BotResponse(null, BotResponse.ResponseType.Dialog, state.User, serialDia.Next(state.CurrentDialog));
+            }
+
+            return new BotResponse(null, BotResponse.ResponseType.Dialog, state.User, state.CurrentDialog);
         }
 
         /// <summary>

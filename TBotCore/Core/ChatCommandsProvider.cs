@@ -19,9 +19,9 @@ namespace TBotCore.Core
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public (bool, ChatCommand) GetCommand(string data, IUser user)
+        public ChatCommand GetCommand(string data, IUser user)
         {
-            return (true, null);
+            return null;
         }
     }
 }

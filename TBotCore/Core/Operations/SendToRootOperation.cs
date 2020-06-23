@@ -17,12 +17,6 @@ namespace TBotCore.Core.Operations
 
         public override async Task<OperationResult> Execute(OperationArgs args)
         {
-            // checks if all arguments for concrete operation is defined
-            if (!RequiredArgsName.Intersect(args.Args.Keys).Any())
-                return new OperationResult(null, OperationResult.OperationResultType.Failed, "One or more arguments for operation is missed!");
-
-            // return empty response to next handler
-            await Task.Delay(BotManager.Core.Configs.BasicDelay);
             try
             {
                 Dialog dia = BotManager.Core.Dialogs.RootDialog;

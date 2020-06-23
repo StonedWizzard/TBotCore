@@ -123,10 +123,12 @@ namespace TBotCore.Core
         }
         #endregion
 
+
         protected void Api_OnInlineQuery(object sender, Telegram.Bot.Args.InlineQueryEventArgs e)
         {
             throw new NotImplementedException();
         }
+
 
         protected async void Api_OnCallbackQuery(object sender, Telegram.Bot.Args.CallbackQueryEventArgs e)
         {
@@ -140,26 +142,60 @@ namespace TBotCore.Core
             // lock the context, so user cant spam thousand messages
             // while some operations execute!
             if (ContextController.GetUserState(user)?.OccupieContext() == false) return;
+            var userState = ContextController.GetUserState(user);
 
-            if(data.T == CallbackData.ContentTypeEnum.Dialog)
+            // juat show dialog, stored in button
+            if (data.T == CallbackData.ContentTypeEnum.Dialog)
             {
                 response = Dialogs.GetDialog(data.Id, user);
             }
-            else if(data.T == CallbackData.ContentTypeEnum.Operation)
+            // service button pressed, there can be stored and operation
+            // and data, retranslated to user input (used in serial dialogs)
+            else if(data.T == CallbackData.ContentTypeEnum.Button)
             {
                 Dialog currentDia = ContextController.GetUserState(user).CurrentDialog;
-                var result = await BotManager.Core.Operations[data.D]
-                    .Execute(new Operations.OperationArgs(user, new Dictionary<string, object> { { "CurrentDialog", currentDia } }));
-                response = result.Result as BotResponse;
+                var Operation = BotManager.Core.Operations.GetOperation(data.D);
+                BotRequest request = new BotRequest();
 
-                // something wrong, go to root
-                if (response == null)
-                    response = new BotResponse(null, BotResponse.ResponseType.Dialog, user, Dialogs.RootDialog);
+                // data is operation - execute it
+                if (Operation != null)
+                {
+                    var result = await BotManager.Core.Operations[data.D]
+                        .Execute(new Operations.OperationArgs(user, new Dictionary<string, object> { { "CurrentDialog", currentDia } }));
+                    if(result.ResultType == Operations.OperationResult.OperationResultType.Failed)
+                    {
+                        // put error to console
+                        BotManager.Core?.LogController?
+                            .LogError(new DebugMessage("Operation '{}' fails!", "BotApi.Api_OnCallbackQuery()", result.ExceptionMessage));
+                    }
+                    response = result.Result as BotResponse;
+
+                    // if data as string == null, so it be null
+                    // request here used to support input awaiting
+                    request = new BotRequest(response?.Data as string, BotRequest.RequestType.CallbackData, user);
+
+                    // something wrong, go to root and notify user
+                    if (response == null)
+                    {
+                        // notify someone (DoTo)
+                        response = new BotResponse(null, BotResponse.ResponseType.Dialog, user, currentDia);
+                    }
+                }
+                // data, just data
+                // expected using in serial dialog!
+                else
+                    request = new BotRequest(data.D, BotRequest.RequestType.CallbackData, user);
+                
+                // if input awited - put response to user cache
+                // and show next dialog (provided by AddRequest method)
+                if (userState.CurrentState == UserContextState.ContextState.AwaitInput)
+                    response = ContextController.AddRequest(user, request);
             }
 
             await UiController.HandleResponse(response, e.CallbackQuery.Message.Chat.Id);
             ContextController.GetUserState(user).RealiseContex();
         }
+
 
         protected async void Api_OnMessage(object sender, Telegram.Bot.Args.MessageEventArgs e)
         {
@@ -196,46 +232,27 @@ namespace TBotCore.Core
             {
                 var userState = ContextController.GetUserState(user);
                 var handledInput = HandleUserInputMessage(msg, user);
-                if (handledInput.Item1 == false)
+
+                // if user didn't start any conversation yet
+                if (userState.CurrentDialog == null)
+                    response = await Dialogs.RootDialog.Execute(user);
+
+                else if (handledInput.Type == BotRequest.RequestType.Command)
                 {
-                    // send user message where says that his input can't parse
-                    var dia = userState.CurrentDialog == null ? Dialogs.RootDialog : userState.CurrentDialog;
-                    response =
-                        new BotExceptionResponse($"Can't parse user input! User: {user.UserId} Input: {msg.Text}\r\n",
-                        "txt_parseUserInputException", user, dia);
+                    // command detected - breack context, build new and execute it
+
+                    // something like stub
+                    // change later!!!!!!!!!!!!!!!!!!!!!!
+                    // nothing to do, just send current user dialog
+                    response = new BotResponse(null, BotResponse.ResponseType.Dialog, user, userState.CurrentDialog);
+
                 }
+                else if (userState.CurrentState == UserContextState.ContextState.AwaitInput)
+                    response = ContextController.AddRequest(user, handledInput);
                 else
                 {
-                    // if user didn't start any conversation yet
-                    // or start any but not await users response
-                    
-                    if (userState.CurrentDialog == null)
-                    {
-                        // conversation never starts in this session
-                        // create context, display root dialog
-                        response = await Dialogs.RootDialog.Execute(user);
-                    }
-                    else if(handledInput.Item2.Type == BotRequest.RequestType.Command)
-                    {
-                        // command detected - breack context, build new and execute it
-
-                        // something like stub
-                        // change later!!!!!!!!!!!!!!!!!!!!!!
-                        // nothing to do, just send current user dialog
-                        response = new BotResponse(null, BotResponse.ResponseType.Dialog, user, userState.CurrentDialog);
-
-                    }
-                    else if (userState.CurrentState == UserContextState.ContextState.AwaitInput)
-                    {
-                        // bot awaits user response...
-                        // so here we going to collect data
-                        ///response = ContextController.AddRequest(handledInput.Item2);
-                    }
-                    else
-                    {
-                        // nothing to do, just send current user dialog
-                        response = new BotResponse(null, BotResponse.ResponseType.Dialog, user, userState.CurrentDialog);
-                    }
+                    // nothing to do, just send current user dialog
+                    response = new BotResponse(null, BotResponse.ResponseType.Dialog, user, userState.CurrentDialog);
                 }
             }
 
@@ -260,45 +277,38 @@ namespace TBotCore.Core
         }
 
         /// <summary>
-        /// Handles user input and converts it to request
+        /// transforms user input to request
         /// </summary>
-        public virtual (bool, BotRequest) HandleUserInputMessage(Message msg, IUser user)
+        public virtual BotRequest HandleUserInputMessage(Message msg, IUser user)
         {
-            bool result = String.IsNullOrEmpty(msg.Text) && String.IsNullOrEmpty(msg.Caption);
+            bool isEmpty = String.IsNullOrEmpty(msg.Text) && String.IsNullOrEmpty(msg.Caption);
             BotRequest request = new BotRequest();
 
             // no text to handle - no money, no honey...
-            if (result)
-                return (!result, request);
+            if (isEmpty)
+                return request;
 
             string txt = !String.IsNullOrEmpty(msg.Text) ? msg.Text : msg.Caption;
 
             // parse message if it command, because them has hiegher priority
             // and able even interrupt serial dialogs!
             var command = Commands.GetCommand(txt, user);
-            if(command.Item1)
+            if(command != null)
             {
                 // it's realy command, create request
                 string commData = txt;  // ToDo - may be parse it in some way?
                 request = new BotRequest(commData, BotRequest.RequestType.Command, user, msg);
             }
             else
-            {
                 // ...just text
                 request = new BotRequest(txt, BotRequest.RequestType.TextMessage, user, msg);
-            }
 
-            //return (result, request);
-            return (true, request);
+            return request;
         }
 
         /// <summary>
         /// In case if user new to bot - call registration procedures
         /// </summary>
-        private async Task<BotResponse> DoRegistration(IUser user)
-        {
-            BotResponse response = await Dialogs.RegistrationDialog.Execute(user);
-            return response;
-        }
+        private async Task<BotResponse> DoRegistration(IUser user) => await Dialogs.RegistrationDialog.Execute(user);
     }
 }

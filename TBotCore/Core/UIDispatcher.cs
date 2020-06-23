@@ -85,6 +85,8 @@ namespace TBotCore.Core
             {
                 try
                 {
+                    // work with serial dialogs here (?)
+
                     Dialog dialog = response.Dialog;
                     OpArgs["Content"] = ProcessContent(TranslateContent(dialog.Content, userPreferences), dialog, IsAddHeader);
                     OpArgs["ReplyMarkdown"] = GetMarkup(dialog, response.User);
@@ -151,15 +153,11 @@ namespace TBotCore.Core
                 return;
             }
 
-            // <<handle other responses>>
-            await Task.Delay(BotManager.Core.Configs.BasicDelay);
-
             // dialog response recieved - redirect user to this dialog
             // and, of course change state
             if (response.Type == BotResponse.ResponseType.Dialog)
             {
-                if (response.Dialog != null)
-                    await SendToDialog();
+                await SendToDialog();
             }
             // response is data so parse it and act accordingly
             else if(response.Type == BotResponse.ResponseType.Data)

@@ -43,7 +43,7 @@ namespace TBotCore.Core.Data
         {
             Unknown,
             Dialog,
-            Operation,
+            Button,
         }
 
         /// <summary>
